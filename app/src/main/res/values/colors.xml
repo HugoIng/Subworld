@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+
+    <color name="blue_subworld">#804e92e1</color>
+    <color name="blue_subworld2">#00aaff</color>
+    <color name="blue_subworld3">#8000aaff</color>
+    <color name="blue_subworld4">#32373c</color>
+
+    <color name="purple_light">#a66276eb</color>
+    <color name="purple_middle">#668658ce</color>
+    <color name="purple_dark">#666a3ab2</color>
+</resources>

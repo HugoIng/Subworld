@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:app="http://schemas.android.com/apk/res-auto"
+xmlns:tools="http://schemas.android.com/tools"
+tools:context=".MainActivity">
+
+<item
+    android:id="@+id/action_switch_location_source"
+    android:orderInCategory="300"
+    android:title="Switch location provider"
+    android:icon="@drawable/wifi"
+    app:showAsAction="ifRoom"></item>
+
+<item
+    android:id="@+id/action_center_map"
+    android:orderInCategory="300"
+    android:title="Center to your location"
+    android:icon="@android:drawable/ic_menu_mylocation"
+    app:showAsAction="ifRoom"></item>
+
+</menu>

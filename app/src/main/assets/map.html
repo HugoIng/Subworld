@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>  
+        <head>
+                <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+                <meta charset="utf-8">
+                <title>Disabling the default UI</title>
+                
+                <style>
+                        html, body {
+                                height: 100%;
+                                margin: 0;
+                                padding: 0;
+                        }
+                        #map {
+                                height: 100%;
+                                position: relative;
+                        }
+
+                        .forwardAnim {
+                                -webkit-animation-name: chgPerspectiveFwd;
+                                -webkit-animation-duration: 2s;
+                                -webkit-animation-iteration-count: 1;
+                                -webkit-animation-direction: normal;
+                                animation-name: chgPerspectiveFwd;
+                                animation-duration: 2s;
+                                animation-iteration-count: 1;
+                                animation-direction: normal;
+                                -webkit-animation-fill-mode: forwards;
+                                animation-fill-mode: forwards;
+                        }
+
+                        .revAnim {
+                                -webkit-animation-name: chgPerspectiveRev;
+                                -webkit-animation-duration: 2s;
+                                -webkit-animation-iteration-count: 1;
+                                -webkit-animation-direction: normal;
+                                animation-name: chgPerspectiveRev;
+                                animation-duration: 2s;
+                                animation-iteration-count: 1;
+                                animation-direction: normal;
+                                -webkit-animation-fill-mode: forwards;
+                                animation-fill-mode: forwards;
+                        }
+
+
+                        @-webkit-keyframes chgPerspectiveFwd {
+                                from {transform: perspective(0px) rotateX( 0deg ) scale(1,1) translate(0px,0px);}
+                                to {transform: perspective(1500px) rotateX( 45deg ) scale(1.6,1.6) translate(0px,-60px);}
+                        }
+                        @keyframes chgPerspectiveFwd {
+                                from {transform: perspective(0px) rotateX( 0deg ) scale(1,1) translate(0px,0px);}
+                                to {transform: perspective(1500px) rotateX( 45deg ) scale(1.6,1.6) translate(0px,-60px);}
+                        }
+
+                        @-webkit-keyframes chgPerspectiveRev {
+                                from {transform: perspective(1500px) rotateX( 45deg ) scale(1.6,1.6) translate(0px,-60px);}
+                                to {transform: perspective(0px) rotateX( 0deg ) scale(1,1) translate(0px,0px);}
+                        }
+                        @keyframes chgPerspectiveRev {
+                                from {transform: perspective(1500px) rotateX( 45deg ) scale(1.6,1.6) translate(0px,-60px);}
+                                to {transform: perspective(0px) rotateX( 0deg ) scale(1,1) translate(0px,0px);}
+                        }
+                </style>
+        </head>
+
+        <body>
+        <div id="map"></div>
+        
+        <script>
+        	var map = null;
+        	var tilted = false;
+        	var marker = null;
+        	var markers = {};
+        	var pendingMyMarker = null;
+        	var pendingMarkers = [];
+        	var zoom = 16;
+
+        	var DEF_LAT = 32;
+        	var DEF_LNG = -44;
+
+            function initMap() {
+
+                style_night = [{"featureType":"all","elementType":"all","stylers":[{"invert_lightness":true},{"saturation":10},{"lightness":30},{"gamma":0.5},{"hue":"#00aaff"}]},{"featureType":"administrative.province","elementType":"geometry.stroke","stylers":[{"saturation":"100"},{"lightness":"27"}]},{"featureType":"landscape","elementType":"geometry.fill","stylers":[{"color":"#32373c"}]},{"featureType":"road.highway","elementType":"geometry.fill","stylers":[{"saturation":"100"},{"lightness":"69"},{"gamma":"1.40"}]},{"featureType":"road.highway","elementType":"labels.text.fill","stylers":[{"lightness":"100"},{"saturation":"100"}]},{"featureType":"road.highway.controlled_access","elementType":"labels.icon","stylers":[{"saturation":"100"}]},{"featureType":"road.arterial","elementType":"geometry.fill","stylers":[{"saturation":"43"},{"lightness":"51"}]},{"featureType":"road.arterial","elementType":"labels.text.fill","stylers":[{"saturation":"45"},{"lightness":"19"}]}];
+                style_day = [{"featureType":"all","elementType":"geometry","stylers":[{"color":"#009bff"}]},{"featureType":"all","elementType":"labels.text.fill","stylers":[{"gamma":0.01},{"lightness":20}]},{"featureType":"all","elementType":"labels.text.stroke","stylers":[{"saturation":-31},{"lightness":-33},{"weight":2},{"gamma":0.8}]},{"featureType":"all","elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"administrative","elementType":"all","stylers":[{"visibility":"simplified"},{"color":"#ffffff"}]},{"featureType":"landscape","elementType":"all","stylers":[{"visibility":"simplified"}]},{"featureType":"landscape","elementType":"geometry","stylers":[{"lightness":30},{"saturation":30}]},{"featureType":"poi","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"poi","elementType":"geometry","stylers":[{"saturation":20}]},{"featureType":"poi.park","elementType":"geometry","stylers":[{"lightness":20},{"saturation":-20}]},{"featureType":"road","elementType":"geometry","stylers":[{"lightness":10},{"saturation":-30},{"visibility":"simplified"},{"color":"#ffffff"}]},{"featureType":"road","elementType":"geometry.stroke","stylers":[{"saturation":25},{"lightness":25}]},{"featureType":"road","elementType":"labels.text","stylers":[{"visibility":"on"},{"weight":"3"}]},{"featureType":"road","elementType":"labels.text.fill","stylers":[{"color":"#36424a"}]},{"featureType":"road","elementType":"labels.text.stroke","stylers":[{"weight":"3"},{"visibility":"on"},{"color":"#fdfdfd"}]},{"featureType":"transit","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"water","elementType":"all","stylers":[{"lightness":-20}]},{"featureType":"water","elementType":"geometry.fill","stylers":[{"color":"#36424a"},{"lightness":"19"}]},{"featureType":"water","elementType":"geometry.stroke","stylers":[{"visibility":"off"}]},{"featureType":"water","elementType":"labels.text.fill","stylers":[{"color":"#ffffff"}]},{"featureType":"water","elementType":"labels.text.stroke","stylers":[{"visibility":"off"}]}];
+                style_red = [{"featureType":"all","elementType":"labels.text.fill","stylers":[{"color":"#ffffff"}]},{"featureType":"all","elementType":"labels.text.stroke","stylers":[{"color":"#000000"},{"lightness":13}]},{"featureType":"administrative","elementType":"geometry.fill","stylers":[{"color":"#000000"}]},{"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"color":"#cacaca"},{"lightness":14},{"weight":1.4}]},{"featureType":"landscape","elementType":"all","stylers":[{"color":"#c70731"}]},{"featureType":"poi","elementType":"geometry","stylers":[{"color":"#e10837"},{"lightness":5}]},{"featureType":"road.highway","elementType":"geometry.fill","stylers":[{"color":"#000000"}]},{"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#0b434f"},{"lightness":25}]},{"featureType":"road.arterial","elementType":"geometry.fill","stylers":[{"color":"#000000"}]},{"featureType":"road.arterial","elementType":"geometry.stroke","stylers":[{"color":"#a0a0a0"},{"lightness":16}]},{"featureType":"road.local","elementType":"geometry","stylers":[{"color":"#000000"}]},{"featureType":"transit","elementType":"all","stylers":[{"color":"#146474"}]},{"featureType":"water","elementType":"all","stylers":[{"color":"#04143c"}]}];
+                style_alt = [{"featureType":"administrative","elementType":"geometry","stylers":[{"visibility":"on"}]},{"featureType":"administrative","elementType":"geometry.stroke","stylers":[{"visibility":"on"},{"lightness":"-100"}]},{"featureType":"administrative","elementType":"labels","stylers":[{"visibility":"off"},{"saturation":"100"}]},{"featureType":"administrative","elementType":"labels.text.fill","stylers":[{"color":"#444444"},{"visibility":"off"}]},{"featureType":"administrative.locality","elementType":"geometry.fill","stylers":[{"visibility":"on"}]},{"featureType":"administrative.locality","elementType":"labels.text.fill","stylers":[{"visibility":"on"}]},{"featureType":"landscape","elementType":"all","stylers":[{"color":"#f2f2f2"}]},{"featureType":"landscape.man_made","elementType":"geometry","stylers":[{"visibility":"on"}]},{"featureType":"landscape.man_made","elementType":"geometry.fill","stylers":[{"saturation":"0"},{"lightness":"0"},{"gamma":"1.14"},{"visibility":"on"},{"hue":"#ff0000"}]},{"featureType":"landscape.man_made","elementType":"labels.text","stylers":[{"visibility":"off"}]},{"featureType":"landscape.man_made","elementType":"labels.text.fill","stylers":[{"visibility":"off"}]},{"featureType":"landscape.man_made","elementType":"labels.text.stroke","stylers":[{"visibility":"on"}]},{"featureType":"poi","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"road","elementType":"all","stylers":[{"saturation":-100},{"lightness":45},{"visibility":"on"}]},{"featureType":"road","elementType":"geometry.fill","stylers":[{"lightness":"-66"},{"visibility":"on"}]},{"featureType":"road","elementType":"labels.text","stylers":[{"visibility":"off"}]},{"featureType":"road","elementType":"labels.text.fill","stylers":[{"visibility":"off"}]},{"featureType":"road","elementType":"labels.text.stroke","stylers":[{"visibility":"on"},{"lightness":"0"}]},{"featureType":"road.highway","elementType":"all","stylers":[{"visibility":"simplified"}]},{"featureType":"road.highway","elementType":"labels.text.fill","stylers":[{"visibility":"off"}]},{"featureType":"road.arterial","elementType":"labels.icon","stylers":[{"visibility":"off"}]},{"featureType":"transit","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"transit","elementType":"geometry","stylers":[{"visibility":"on"}]},{"featureType":"water","elementType":"all","stylers":[{"color":"#020f12"},{"visibility":"on"}]}];
+
+                user_icon = {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 10,
+                    fillColor: 'red',
+                    fillOpacity: 0.8,
+                    strokeColor: 'gold',
+                    strokeWeight: 1,
+                    zIndex: 2
+                };
+
+                treasure_icon = {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    scale: 10,
+                    fillColor: 'black',
+                    fillOpacity: 0.8,
+                    strokeColor: 'gold',
+                    strokeWeight: 1,
+                    zIndex: 1
+                };
+
+                my_icon = {
+                    path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                    scale: 6,
+                    fillColor: 'white',
+                    fillOpacity: 1,
+                    strokeColor: 'gold',
+                    strokeWeight: 1,
+                    zIndex: 3
+                };
+
+                map = new google.maps.Map(document.getElementById('map'), {
+                    'zoom': zoom,
+                    'minZoom': 14,
+                    'center': {lat: DEF_LAT, lng: DEF_LNG},
+                    'styles': style_day,
+                    'disableDefaultUI': true
+                });
+
+				console.log("INITMAP: map started");
+
+                if(pendingMyMarker != null) {
+                    updateMyMarker(pendingMyMarker.lat, pendingMyMarker.lng, pendingMarker.bearing);
+                    pendingMyMarker = null;
+                }
+                if(pendingMarkers.length > 0) {
+                    while(pendingMarkers.length > 0) {
+                        var pm = pendingMarkers.pop();
+                        updateMarker(pm.uid, pm.lat,pm.lng);
+                    }
+                }
+            }
+
+            var setStyle = function(style) {
+                console.log("Setting style:" + style);
+                var st;
+                switch(style) {
+                    case "NIGHT":
+                        st = style_night;
+                    break;
+                    case "DAY":
+                        st = style_day;
+                    break;
+                    case "RED":
+                        st = style_red;
+                    break;
+                    case "ALT":
+                        st = style_alt
+                    break;
+                    default:
+                        st = style_night;
+                    break;
+                }
+                map.set("styles",st);
+            };
+
+            var togglePerpective = function() {
+                console.log("TOGGLEPERSPECTIVE");
+                var mapBox = document.getElementById("map");
+
+                if(tilted) {
+                        mapBox.classList.remove('forwardAnim');
+                        mapBox.classList.add('revAnim');
+                        tilted = false;
+                } else {
+                        mapBox.classList.remove('revAnim');
+                        mapBox.classList.add('forwardAnim');
+                        tilted = true;
+                }
+            };
+
+            var updateMyMarker = function(latitude, longitude, bearing) {
+                if(map == null) {
+                    pendingMyMarker = {'lat':latitude, 'lng':longitude, 'bearing':bearing};
+                    return;
+                }
+
+                console.log("UPDATE MY MARKER");
+                if(marker === null) {
+                       console.log("create my MARKER");
+                       marker = new google.maps.Marker({
+                           position: {lat: latitude, lng: longitude}
+                       });
+
+                       if(map != null) {
+                            console.log("set map to my MARKER");
+                            marker.setMap(map);
+                            map.panTo(marker.getPosition());
+                       }
+                } else {
+                        map.panTo({lat: latitude, lng: longitude});
+                        marker.setPosition(new google.maps.LatLng(latitude, longitude));
+                }
+
+                console.log("Set bearing to: " + bearing);
+                my_icon.rotation = bearing;
+                marker.setIcon(my_icon);
+            };
+
+            var updateMarker = function(uid, latitude, longitude) {
+                if(map === null) {
+                    pendingMarkers.push({'uid':uid,'lat':latitude,'lng':longitude});
+                    return;
+                }
+
+                console.log("UPDATE MARKER");
+                var m = markers.uid;
+                if(m != null) {
+                    m.setPosition({lat: latitude, lng: longitude});
+                } else {
+                    console.log("create MARKER");
+                    m = new google.maps.Marker({
+                        position: {lat: latitude, lng: longitude},
+                        title: uid,
+                        icon: user_icon
+                    });
+
+                    google.maps.event.addListener(m, "click", function() {
+                       console.log("Marker clicked:" + this.getTitle());
+                       Android.clicked(this.getTitle());
+                    });
+
+                    markers.uid = m;
+                    if(map != null) {
+                            console.log("set map to MARKER");
+                            m.setMap(map);
+                    }
+                }
+            };
+
+            var setZoom= function(zoomVal) {
+                zoom = zoomVal;
+                if(map != null) {
+                    map.setZoom(zoom);
+                }
+            };
+
+			// Removes the markers from the map, but keeps them in the array.
+			var clearMarkers = function() {
+			    if(markers.length > 0) {
+                    var keys = markers.keys();
+                    for (var i = 0; i < keys.length; i++) {
+                        markers[keys[i]].setMap(null);
+                        markers.remove(keys[i]);
+                    }
+                }
+			};
+
+            var removeMarker = function(uid) {
+                console.log("REMOVE MARKER");
+                var m = markers.uid;
+                if(m != null) {
+                    m.setMap(null);
+                    markers.remove(uid);
+                }
+            };
+
+            console.log("All functions set");
+
+        </script>
+
+        <script src="file:///android_asset/jquery.min.js"></script>
+        <script src="file:///android_asset/jquery.easing.1.3.js"></script>
+
+        <!-- we provide marker for google maps, so here it comes  -->
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyChf-5b_xob_qUHNLV-zShxi10T4Gh3Gk8&callback=initMap"></script>
+
+        <!-- we use markerAnimate to actually animate marker -->
+        <script src="file:///android_asset/markerAnimate.js"></script>
+        <!-- SlidingMarker hides details from you - your markers are just animated automagically -->
+        <script src="file:///android_asset/SlidingMarker.min.js"></script>
+        <script>
+            SlidingMarker.initializeGlobally();
+        </script>
+
+        <!--script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyChf-5b_xob_qUHNLV-zShxi10T4Gh3Gk8&callback=initMap"></script-->
+
+        </body>
+</html>
