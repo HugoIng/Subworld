@@ -2,6 +2,7 @@ package com.deepred.subworld;
 
 import android.location.Location;
 import android.util.Log;
+
 import com.deepred.subworld.model.User;
 import com.google.android.gms.maps.model.LatLng;
 
@@ -14,17 +15,16 @@ import java.util.Map;
  */
 public class GameManager implements IViewRangeListener {
 
+    private static final int TWO_MINUTES = 1000 * 60 * 2;
     private static Object lock = new Object();
     private static volatile GameManager instance = null;
     private String TAG = "GameManager";
-
     // User location
     private Location lastLocation;
     private long lastLocationDate;
     private IMarkersListener actListener;
     private SubworldApplication app;
     private UsersViewRangeManager viewRange;
-
     //Messages pendientes
     private boolean hasMyLocationPending = false;
     private boolean hasLocationsPending = false;
@@ -112,8 +112,6 @@ public class GameManager implements IViewRangeListener {
     public void unregisterListener() {
         actListener = null;
     }
-
-    private static final int TWO_MINUTES = 1000 * 60 * 2;
 
     /** Determines whether one Location reading is better than the current Location fix
      * @param location  The new Location that you want to evaluate
@@ -260,18 +258,21 @@ public class GameManager implements IViewRangeListener {
         int tot = myWatchingSkill - otherHidingSkill;
         if(tot < 0)
             tot = 0;
-        return ICommon.distanceTable[tot][calculateDistanceRange(distance)];
+        int range = calculateDistanceRange(distance);
+        if (range > -1)
+            return ICommon.distanceTable[tot][range];
+        else
+            return false;
     }
 
     private int calculateDistanceRange(float distance) {
         Float d = new Float(distance);
         int dist = d.intValue();
-        int i;
-        for(i = 0; i < ICommon.distanceRanges.length; i++) {
+        for (int i = 0; i < ICommon.distanceRanges.length; i++) {
             if(dist <= ICommon.distanceRanges[i]) {
-                break;
+                return i;
             }
         }
-        return i;
+        return -1;
     }
 }

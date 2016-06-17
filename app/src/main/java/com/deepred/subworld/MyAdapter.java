@@ -1,5 +1,6 @@
 package com.deepred.subworld;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -7,6 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.deepred.subworld.utils.Fx;
 
 
 /**
@@ -59,8 +62,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
             ViewHolder vhHeader = new ViewHolder(v, viewType); //Creating ViewHolder and passing the object of type view
 
             return vhHeader; //returning the object created
-
-
         }
         return null;
 
@@ -82,9 +83,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
             // position by 1 and pass it to the holder while setting the text and image
             holder.textView.setText(mNavTitles[position - 1]); // Setting the Text with the array of our Titles
             holder.imageView.setImageResource(mIcons[position -1]);// Settimg the image with array of our icons
-        }
-        else{
-
+        } else {
             holder.profile.setImageResource(profile);           // Similarly we set the resources for header view
             holder.Name.setText(name);
             holder.email.setText(email);
@@ -120,12 +119,8 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         TextView Name;
         TextView email;
 
-        boolean desplegado = false;
-
-
-        public ViewHolder(View itemView, int ViewType) {                 // Creating ViewHolder Constructor with View and viewType As a parameter
+        public ViewHolder(final View itemView, int ViewType) {                 // Creating ViewHolder Constructor with View and viewType As a parameter
             super(itemView);
-
 
             // Here we set the appropriate view in accordance with the the view type as passed when the holder object is created
 
@@ -135,31 +130,18 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
                 detail = (TextView) itemView.findViewById(R.id.rowDetail);
                 Holderid = 1;                                               // setting holder id as 1 as the object being populated are of type item row
 
-
                 textView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         Log.d("fff", "kkk");
-                        if (detail.isShown()) {
-                            //Fx.slide_up(this, txt_help_gest);
-                            detail.setVisibility(View.GONE);
-                        } else {
-                            detail.setVisibility(View.VISIBLE);
-                            //Fx.slide_down(this, txt_help_gest);
-                        }
+                        toggleDetail(itemView.getContext());
                     }
                 });
                 detail.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         Log.d("yyy", "yyy");
-                        if (detail.isShown()) {
-                            //Fx.slide_up(this, txt_help_gest);
-                            detail.setVisibility(View.GONE);
-                        } else {
-                            detail.setVisibility(View.VISIBLE);
-                            //Fx.slide_down(this, txt_help_gest);
-                        }
+                        toggleDetail(itemView.getContext());
                     }
                 });
 
@@ -172,7 +154,15 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
             }
         }
 
-
+        private void toggleDetail(Context ctx) {
+            if (detail.isShown()) {
+                Fx.slide_up(ctx, detail);
+                detail.setVisibility(View.GONE);
+            } else {
+                detail.setVisibility(View.VISIBLE);
+                Fx.slide_down(ctx, detail);
+            }
+        }
     }
 
 }
