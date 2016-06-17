@@ -2,7 +2,6 @@ package com.deepred.subworld;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,10 +27,6 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     private int profile;        //int Resource for header view profile picture
     private String email;       //String Resource for header view email
 
-
-    // Creating a ViewHolder which extends the RecyclerView View Holder
-    // ViewHolder are used to to store the inflated views in order to recycle them
-
     MyAdapter(String Titles[], int Icons[], String Name, String Email, int Profile) { // MyAdapter Constructor with titles and icons parameter
         // titles, icons, name, email, profile pic are passed from the main activity as we
         mNavTitles = Titles;                //have seen earlier
@@ -42,6 +37,10 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         //in adapter
 
     }
+
+
+    // Creating a ViewHolder which extends the RecyclerView View Holder
+    // ViewHolder are used to to store the inflated views in order to recycle them
 
     @Override
     public MyAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -67,28 +66,28 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
     }
 
-
-
-    //Below first we ovverride the method onCreateViewHolder which is called when the ViewHolder is
-    //Created, In this method we inflate the item_row.xml layout if the viewType is Type_ITEM or else we inflate header.xml
-    // if the viewType is TYPE_HEADER
-    // and pass it to the view holder
-
     //Next we override a method which is called when the item in a row is needed to be displayed, here the int position
     // Tells us item at which position is being constructed to be displayed and the holder id of the holder object tell us
     // which view type is being created 1 for item row
     @Override
     public void onBindViewHolder(MyAdapter.ViewHolder holder, int position) {
-        if(holder.Holderid ==1) {                              // as the list view is going to be called after the header view so we decrement the
+        if (holder.Holderid == 1) {                              // as the list view is going to be called after the header view so we decrement the
             // position by 1 and pass it to the holder while setting the text and image
             holder.textView.setText(mNavTitles[position - 1]); // Setting the Text with the array of our Titles
-            holder.imageView.setImageResource(mIcons[position -1]);// Settimg the image with array of our icons
+            holder.imageView.setImageResource(mIcons[position - 1]);// Settimg the image with array of our icons
         } else {
             holder.profile.setImageResource(profile);           // Similarly we set the resources for header view
             holder.Name.setText(name);
             holder.email.setText(email);
         }
     }
+
+
+
+    //Below first we ovverride the method onCreateViewHolder which is called when the ViewHolder is
+    //Created, In this method we inflate the item_row.xml layout if the viewType is Type_ITEM or else we inflate header.xml
+    // if the viewType is TYPE_HEADER
+    // and pass it to the view holder
 
     // This method returns the number of items present in the list
     @Override
@@ -107,6 +106,10 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
     private boolean isPositionHeader(int position) {
         return position == 0;
+    }
+
+    public static interface OnAnimationEndCompleteListener {
+        void onAnimationComplete();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -133,14 +136,12 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
                 textView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Log.d("fff", "kkk");
                         toggleDetail(itemView.getContext());
                     }
                 });
                 detail.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Log.d("yyy", "yyy");
                         toggleDetail(itemView.getContext());
                     }
                 });
@@ -156,8 +157,12 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
         private void toggleDetail(Context ctx) {
             if (detail.isShown()) {
-                Fx.slide_up(ctx, detail);
-                detail.setVisibility(View.GONE);
+                Fx.slide_up(ctx, detail, new OnAnimationEndCompleteListener() {
+                    @Override
+                    public void onAnimationComplete() {
+                        detail.setVisibility(View.GONE);
+                    }
+                });
             } else {
                 detail.setVisibility(View.VISIBLE);
                 Fx.slide_down(ctx, detail);
