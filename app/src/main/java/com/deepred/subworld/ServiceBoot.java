@@ -18,9 +18,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 
-import com.deepred.subworld.ApplicationHolder;
-import com.deepred.subworld.GameManager;
-import com.deepred.subworld.ICommon;
+import com.deepred.subworld.engine.GameManager;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -31,7 +29,9 @@ import com.google.android.gms.location.LocationSettingsResult;
 
 
 /**
- * Created by aplicaty on 25/02/16.
+ * Created by Hugo.
+ *
+ * Manages location providers and app status
  */
 public class ServiceBoot extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
 
@@ -50,6 +50,9 @@ public class ServiceBoot extends Service implements GoogleApiClient.ConnectionCa
 
     private static boolean requiredGpsMode = false;
     private boolean effectiveGpsMode = false;
+
+    private boolean isConnected; // Flag indicating BBDD connection. Prevents location requests before the app is logued into the BBDD.
+    private boolean requestLocationsStarted; // Flag indicating locations are being requested already
 
     // TODO
     // Estrategias de localizacion: iniciar en modo LOW_PRECISSION.
@@ -71,6 +74,9 @@ public class ServiceBoot extends Service implements GoogleApiClient.ConnectionCa
         ApplicationHolder.setAplicatyApplication(app);
         app.setServiceBoot(this);
         gm = GameManager.getInstance();
+
+        isConnected = false;
+        requestLocationsStarted = false;
 
         // Register receiver that handles screen on and screen off logic
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
@@ -119,6 +125,11 @@ public class ServiceBoot extends Service implements GoogleApiClient.ConnectionCa
         Log.d(TAG, "switchProvider: use GPS:" + useGPS);
 
         requiredGpsMode = useGPS;
+
+        if(!isConnected) {
+            return;
+        }
+
         if (requiredGpsMode == effectiveGpsMode)
             return;
 
@@ -130,11 +141,22 @@ public class ServiceBoot extends Service implements GoogleApiClient.ConnectionCa
         } else {
             requestLocationUpdates(LOCATION_LOW_PRECISSION);
         }
+
+        requestLocationsStarted = true;
     }
 
     public boolean isUsingGPS() {
         return (effectiveGpsMode && gm.getLastLocation() != null);
     }
+
+    // BBDD Connection callback
+
+    public void onBBDDConnected() {
+        isConnected = true;
+        if(!requestLocationsStarted)
+            switchProvider(gm.checkBackgroundStatus());
+    }
+
 
     //Android Location methods
     private void requestLocationUpdates(int precission) {

@@ -3,7 +3,7 @@ package com.deepred.subworld.model;
 import com.deepred.subworld.ICommon;
 
 /**
- * Created by aplicaty on 25/02/16.
+ *
  */
 public class Skills {
     private Skill finding;

@@ -6,6 +6,8 @@ import android.content.ComponentCallbacks2;
 import android.content.res.Configuration;
 import android.os.Bundle;
 
+import com.deepred.subworld.engine.GameManager;
+
 /**
  * Created by aplicaty on 25/02/16.
  */

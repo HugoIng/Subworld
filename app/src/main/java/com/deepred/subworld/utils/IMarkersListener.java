@@ -1,11 +1,11 @@
-package com.deepred.subworld;
+package com.deepred.subworld.utils;
 
 import android.location.Location;
 
 import com.google.android.gms.maps.model.LatLng;
 
 /**
- * Created by aplicaty on 25/02/16.
+ *
  */
 public interface IMarkersListener {
     public void updateMarker(String uid, LatLng latLng);

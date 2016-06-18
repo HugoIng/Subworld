@@ -1,11 +1,11 @@
-package com.deepred.subworld;
+package com.deepred.subworld.utils;
 
 import com.deepred.subworld.model.User;
 
 import java.util.ArrayList;
 
 /**
- * Created by aplicaty on 25/02/16.
+ *
  */
 public class MyUserManager {
     private static Object lock = new Object();

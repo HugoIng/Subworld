@@ -1,4 +1,4 @@
-package com.deepred.subworld;
+package com.deepred.subworld.views;
 
 import android.content.Context;
 import android.content.Intent;
@@ -19,11 +19,16 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.deepred.subworld.engine.DataManager;
+import com.deepred.subworld.ICommon;
+import com.deepred.subworld.utils.IUserCallbacks;
+import com.deepred.subworld.utils.MyUserManager;
+import com.deepred.subworld.R;
 import com.deepred.subworld.model.Treasure;
 import com.deepred.subworld.model.User;
 
 /**
- * Created by aplicaty on 25/02/16.
+ *
  */
 public class CharactersSelectionActivity extends AppCompatActivity implements IUserCallbacks {
 

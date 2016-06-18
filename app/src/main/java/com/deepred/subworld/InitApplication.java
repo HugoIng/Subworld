@@ -7,8 +7,14 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.deepred.subworld.engine.DataManager;
 import com.deepred.subworld.model.User;
 import com.deepred.subworld.notifications.BaseNotificationBuilder;
+import com.deepred.subworld.utils.IUserCallbacks;
+import com.deepred.subworld.utils.MyUserManager;
+import com.deepred.subworld.views.CharactersSelectionActivity;
+import com.deepred.subworld.views.LoginActivity;
+import com.deepred.subworld.views.MapboxActivity;
 
 /**
  * Created by aplicaty on 25/02/16.
@@ -35,13 +41,12 @@ public class InitApplication extends Activity implements IUserCallbacks {
         Intent i = getIntent();
         if (i != null) {
             // We are coming from a notification
-            Class clazz = (Class) i.getSerializableExtra(BaseNotificationBuilder.SOAPBOX_NOTIF_CLASS);
+            Class clazz = (Class) i.getSerializableExtra(BaseNotificationBuilder.SUBWORLD_NOTIF_CLASS);
             if (clazz != null) {
                 extraFromNotification = i.getExtras();
             }
         }
 
-        //Firebase.setAndroidContext(this);
         DataManager.getInstance();
 
         // Restore preferences
@@ -49,7 +54,12 @@ public class InitApplication extends Activity implements IUserCallbacks {
         email = prefs.getString(ICommon.EMAIL, null);
         password = prefs.getString(ICommon.PASSWORD, null);
 
+        // Look for credentials
         if (email != null && password != null) {
+
+            //TODO Add splash screen and spinner to this activity
+            setContentView(R.layout.activity_init);
+
             MyUserManager.getInstance().register4UserNotifications(this);
 
             // Login with credentials
@@ -85,7 +95,6 @@ public class InitApplication extends Activity implements IUserCallbacks {
         startActivity(outI);
 
         extraFromNotification = null;
-        //finish();
     }
 
     @Override
@@ -98,7 +107,7 @@ public class InitApplication extends Activity implements IUserCallbacks {
         //else entrar
         else {
             //Intent intent = new Intent(getApplicationContext(), GameActivity.class);
-            Intent intent = new Intent(getApplicationContext(), WebGameActivity.class);
+            Intent intent = new Intent(getApplicationContext(), MapboxActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             this.startActivity(intent);
         }

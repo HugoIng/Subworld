@@ -6,7 +6,7 @@ import java.util.Date;
 import java.util.Random;
 
 /**
- * Created by aplicaty on 25/02/16.
+ *
  */
 public class Treasure {
     private int type;

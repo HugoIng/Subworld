@@ -12,13 +12,13 @@ import com.deepred.subworld.ApplicationHolder;
 import com.deepred.subworld.SubworldApplication;
 
 /**
- * Created by aplicaty on 25/02/16.
+ *
  */
 public class BaseNotificationBuilder implements INotificationBuilder {
 
-    public static final String SOAPBOX_NOTIF_CLASS = "NOTIFICATION_CLASS";
-    public static final String SOAPBOX_NOTIF_ID = "NOTIFICATION_ID";
-    protected static final String SOAPBOX_NOTIF_DELETED_EVENT = "SOAPBOX_NOTIF_DELETED_EVENT";
+    public static final String SUBWORLD_NOTIF_CLASS = "NOTIFICATION_CLASS";
+    public static final String SUBWORLD_NOTIF_ID = "NOTIFICATION_ID";
+    protected static final String SUBWORLD_NOTIF_DELETED_EVENT = "SOAPBOX_NOTIF_DELETED_EVENT";
     //protected ArrayList<INewUpdatedContent> noticationStack;
     protected android.app.NotificationManager notificationManager;
     protected Context context;
@@ -33,8 +33,7 @@ public class BaseNotificationBuilder implements INotificationBuilder {
 
     protected PendingIntent getDeleteIntent(){
         Intent intent = new Intent(context, NotificationDeleteReceiver.class);
-        //intent.putExtra(SOAPBOX_NOTIF_CLASS, getSourceClass());
-        intent.setAction(SOAPBOX_NOTIF_DELETED_EVENT);
+        intent.setAction(SUBWORLD_NOTIF_DELETED_EVENT);
         return PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
     }
 

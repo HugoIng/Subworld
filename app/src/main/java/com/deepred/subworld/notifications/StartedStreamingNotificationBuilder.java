@@ -1,7 +1,7 @@
 package com.deepred.subworld.notifications;
 
 /**
- * Created by aplicaty on 25/02/16.
+ *
  */
 public class StartedStreamingNotificationBuilder {
     public static final int NOTIFICATION_ID = 1001010;

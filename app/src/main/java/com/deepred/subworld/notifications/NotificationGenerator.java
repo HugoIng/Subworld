@@ -3,7 +3,7 @@ package com.deepred.subworld.notifications;
 import java.util.Hashtable;
 
 /**
- * Created by aplicaty on 25/02/16.
+ *
  */
 public class NotificationGenerator {
 

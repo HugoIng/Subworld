@@ -1,7 +1,7 @@
 package com.deepred.subworld.model;
 
 /**
- * Created by aplicaty on 25/02/16.
+ *
  */
 public class Skill {
     public int value;

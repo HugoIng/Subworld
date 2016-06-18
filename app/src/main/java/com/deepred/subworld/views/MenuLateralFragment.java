@@ -1,4 +1,4 @@
-package com.deepred.subworld;
+package com.deepred.subworld.views;
 
 import android.app.Fragment;
 import android.os.Bundle;
@@ -6,8 +6,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.deepred.subworld.R;
+
 /**
- * Created by aplicaty on 26/02/16.
+ *
  */
 public class MenuLateralFragment extends Fragment {
 

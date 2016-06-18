@@ -1,4 +1,4 @@
-package com.deepred.subworld;
+package com.deepred.subworld.views;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -28,14 +28,21 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import com.deepred.subworld.ICommon;
+import com.deepred.subworld.utils.MyUserManager;
+import com.deepred.subworld.R;
+import com.deepred.subworld.engine.DataManager;
 import com.deepred.subworld.model.User;
+import com.deepred.subworld.utils.IUserCallbacks;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import static android.Manifest.permission.READ_CONTACTS;
 
 /**
- * Created by aplicaty on 25/02/16.
+ *
  */
 public class LoginActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, IUserCallbacks {
 
@@ -184,7 +191,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderManager.Lo
         //else entrar
         else {
             //Intent intent = new Intent(getApplicationContext(), GameActivity.class);
-            Intent intent = new Intent(getApplicationContext(), WebGameActivity.class);
+            Intent intent = new Intent(getApplicationContext(), MapboxActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             this.startActivity(intent);
         }

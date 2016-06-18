@@ -1,4 +1,4 @@
-package com.deepred.subworld;
+package com.deepred.subworld.views;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -7,9 +7,11 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.deepred.subworld.R;
+
 
 /**
- * Created by hp1 on 28-12-2014.
+ *
  */
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 

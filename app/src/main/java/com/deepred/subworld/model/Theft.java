@@ -3,7 +3,7 @@ package com.deepred.subworld.model;
 import java.util.Date;
 
 /**
- * Created by aplicaty on 25/02/16.
+ *
  */
 public class Theft {
     private String thief;

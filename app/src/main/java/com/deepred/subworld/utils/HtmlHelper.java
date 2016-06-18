@@ -1,11 +1,14 @@
-package com.deepred.subworld;
+package com.deepred.subworld.utils;
 
 import android.content.Context;
+
+import com.deepred.subworld.R;
+
 import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Created by aplicaty on 09/03/16.
+ *
  */
 public class HtmlHelper {
 

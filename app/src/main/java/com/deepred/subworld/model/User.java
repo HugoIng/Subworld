@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by aplicaty on 25/02/16.
+ *
  */
 public class User {
     private String uid;

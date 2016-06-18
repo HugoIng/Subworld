@@ -1,4 +1,4 @@
-package com.deepred.subworld;
+package com.deepred.subworld.views;
 
 import android.animation.ValueAnimator;
 import android.content.res.Configuration;
@@ -12,6 +12,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.Toast;
+
+import com.deepred.subworld.ApplicationHolder;
+import com.deepred.subworld.utils.DoubleArrayEvaluator;
+import com.deepred.subworld.engine.GameManager;
+import com.deepred.subworld.utils.IMarkersListener;
+import com.deepred.subworld.R;
+import com.deepred.subworld.ServiceBoot;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;

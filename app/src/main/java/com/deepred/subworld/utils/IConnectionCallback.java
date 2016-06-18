@@ -1,7 +1,7 @@
-package com.deepred.subworld;
+package com.deepred.subworld.utils;
 
 /**
- * Created by Hugo on 3/28/2016.
+ *
  */
 public interface IConnectionCallback {
     public void onConnected();

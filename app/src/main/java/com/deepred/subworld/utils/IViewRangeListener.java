@@ -1,9 +1,9 @@
-package com.deepred.subworld;
+package com.deepred.subworld.utils;
 
 import com.google.android.gms.maps.model.LatLng;
 
 /**
- * Created by aplicaty on 29/02/16.
+ *
  */
 public interface IViewRangeListener {
     public void updateLocation(String uid, LatLng l, boolean isMe);

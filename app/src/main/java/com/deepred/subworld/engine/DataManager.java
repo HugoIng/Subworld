@@ -1,9 +1,15 @@
-package com.deepred.subworld;
+package com.deepred.subworld.engine;
 
 import android.location.Location;
 import android.util.Log;
 
+import com.deepred.subworld.ApplicationHolder;
+import com.deepred.subworld.ICommon;
+import com.deepred.subworld.utils.IUserCallbacks;
+import com.deepred.subworld.views.LoginActivity;
+import com.deepred.subworld.utils.MyUserManager;
 import com.deepred.subworld.model.User;
+import com.deepred.subworld.views.CharactersSelectionActivity;
 import com.firebase.client.AuthData;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;

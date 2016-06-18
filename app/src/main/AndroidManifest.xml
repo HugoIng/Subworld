@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.deepred.subworld" >
+    package="com.deepred.subworld">
 
     <!--
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
@@ -49,12 +49,12 @@
         android:value="@string/google_client_id" /
     -->
     <application
-        android:name="com.deepred.subworld.SubworldApplication"
+        android:name=".SubworldApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/AppTheme">
 
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
@@ -75,44 +75,46 @@
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
-            android:name="com.deepred.subworld.LoginActivity"
+            android:name=".views.LoginActivity"
             android:label="@string/app_name"
             android:launchMode="singleTop"
-            android:screenOrientation="portrait">
-        </activity>
+            android:screenOrientation="portrait"></activity>
         <activity
-            android:name="com.deepred.subworld.CharactersSelectionActivity"
+            android:name=".views.CharactersSelectionActivity"
             android:label="@string/character_screen"
             android:launchMode="singleTop"
-            android:screenOrientation="portrait">
-        </activity>
+            android:screenOrientation="portrait"></activity>
         <activity
-            android:name="com.deepred.subworld.GameActivity"
+            android:name=".views.GameActivity"
             android:label="@string/title_activity_game"
             android:launchMode="singleTop"
-            android:screenOrientation="portrait">
-        </activity>
+            android:screenOrientation="portrait"></activity>
         <activity
-            android:name="com.deepred.subworld.WebGameActivity"
+            android:name=".views.WebGameActivity"
             android:label="@string/title_activity_game"
             android:launchMode="singleTop"
-            android:screenOrientation="portrait">
-        </activity>
+            android:screenOrientation="portrait"></activity>
 
         <service
-            android:name="com.deepred.subworld.ServiceBoot"
+            android:name=".ServiceBoot"
             android:action="com.deepred.subworld.Service"
             android:enabled="true"
-            android:exported="true" >
-        </service>
+            android:exported="true"></service>
+        <service android:name="com.mapbox.mapboxsdk.telemetry.TelemetryService" />
 
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
+
+        <activity
+            android:name=".views.MapboxActivity"
+            android:label="@string/title_activity_mapbox"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

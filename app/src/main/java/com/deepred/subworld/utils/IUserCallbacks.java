@@ -1,9 +1,9 @@
-package com.deepred.subworld;
+package com.deepred.subworld.utils;
 
 import com.deepred.subworld.model.User;
 
 /**
- * Created by aplicaty on 25/02/16.
+ *
  */
 public interface IUserCallbacks {
     void onUserChange(User user);
