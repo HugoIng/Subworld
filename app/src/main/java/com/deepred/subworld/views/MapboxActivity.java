@@ -21,6 +21,8 @@ import com.deepred.subworld.utils.IMarkersListener;
 import com.deepred.subworld.utils.MyUserManager;
 import com.google.android.gms.maps.model.LatLng;
 import com.mapbox.mapboxsdk.maps.MapView;
+import com.mapbox.mapboxsdk.maps.MapboxMap;
+import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
 public class MapboxActivity extends AppCompatActivity implements IMarkersListener {
 
@@ -66,6 +68,14 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
 
         mapView = (MapView) findViewById(R.id.mapboxview);
         mapView.onCreate(savedInstanceState);
+        mapView.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(MapboxMap mapboxMap) {
+
+                // Interact with the map using mapboxMap here
+
+            }
+        });
 
         mAdapter = new MyAdapter(TITLES,ICONS,NAME,EMAIL,R.drawable.c2);       // Creating the Adapter of MyAdapter class(which we are going to see in a bit)
         // And passing the titles,icons,header view name, header view email,
@@ -79,15 +89,36 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
         gm = GameManager.getInstance();
     }
 
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mapView.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mapView.onLowMemory();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mapView.onDestroy();
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
+        mapView.onResume();
         gm.registerListener(this);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        mapView.onPause();
         gm.unregisterListener();
     }
 

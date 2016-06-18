@@ -16,19 +16,16 @@
         android:layout_height="match_parent"
         tools:context="com.deepred.webmaptest.WebActivity$PlaceholderFragment" >
 
-        <!--WebView
-            android:id="@+id/webView1"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true" /-->
-
         <com.mapbox.mapboxsdk.maps.MapView
             android:id="@+id/mapboxview"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             mapbox:style_url="@string/style_mapbox_streets"
-            mapbox:access_token="pk.eyJ1IjoiaDRoaCIsImEiOiJjaXBreHJ3OGUwMDg0djVucWRuOXMxcXkxIn0.X30_SvfBjH6UgGM7Qr8L7w"/>
+            mapbox:center_latitude="41.885"
+            mapbox:center_longitude="-87.679"
+            mapbox:zoom="12"
+            mapbox:tilt="20"
+            mapbox:access_token="@string/mapbox_access_token"/>
 
         <RadioButton
             android:layout_width="wrap_content"
