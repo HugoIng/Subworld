@@ -57,7 +57,6 @@ public class InitApplication extends Activity implements IUserCallbacks {
         // Look for credentials
         if (email != null && password != null) {
 
-            //TODO Add splash screen and spinner to this activity
             setContentView(R.layout.activity_init);
 
             MyUserManager.getInstance().register4UserNotifications(this);
