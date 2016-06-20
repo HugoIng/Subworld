@@ -28,32 +28,50 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     private int profile;        //int Resource for header view profile picture
     private String email;       //String Resource for header view email
 
+    public interface OnAnimationEndCompleteListener {
+        void onAnimationComplete();
+    }
 
-    // Creating a ViewHolder which extends the RecyclerView View Holder
-    // ViewHolder are used to to store the inflated views in order to recycle them
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         int Holderid;
 
         TextView textView;
+        TextView detail;
         ImageView imageView;
         ImageView profile;
         TextView Name;
         TextView email;
 
+        // Creating a ViewHolder which extends the RecyclerView View Holder
+        // ViewHolder are used to to store the inflated views in order to recycle them
 
-        public ViewHolder(View itemView,int ViewType) {                 // Creating ViewHolder Constructor with View and viewType As a parameter
+        public ViewHolder(final View itemView, int ViewType) {                 // Creating ViewHolder Constructor with View and viewType As a parameter
             super(itemView);
-
 
             // Here we set the appropriate view in accordance with the the view type as passed when the holder object is created
 
-            if(ViewType == TYPE_ITEM) {
+            if (ViewType == TYPE_ITEM) {
                 textView = (TextView) itemView.findViewById(R.id.rowText); // Creating TextView object with the id of textView from item_row.xml
                 imageView = (ImageView) itemView.findViewById(R.id.rowIcon);// Creating ImageView object with the id of ImageView from item_row.xml
+                detail = (TextView) itemView.findViewById(R.id.rowDetail);
                 Holderid = 1;                                               // setting holder id as 1 as the object being populated are of type item row
-            }
-            else{
+
+                textView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        toggleDetail(itemView.getContext());
+                    }
+                });
+                detail.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        toggleDetail(itemView.getContext());
+                    }
+                });
+
+                detail.setVisibility(View.GONE);
+            } else {
                 Name = (TextView) itemView.findViewById(R.id.name);         // Creating Text View object from header.xml for name
                 email = (TextView) itemView.findViewById(R.id.email);       // Creating Text View object from header.xml for email
                 profile = (ImageView) itemView.findViewById(R.id.imageProfile);// Creating Image view object from header.xml for profile pic
@@ -61,10 +79,20 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
             }
         }
 
-
+        private void toggleDetail(Context ctx) {
+            if (detail.isShown()) {
+                Fx.slide_up(ctx, detail, new OnAnimationEndCompleteListener() {
+                    @Override
+                    public void onAnimationComplete() {
+                        detail.setVisibility(View.GONE);
+                    }
+                });
+            } else {
+                detail.setVisibility(View.VISIBLE);
+                Fx.slide_down(ctx, detail);
+            }
+        }
     }
-
-
 
     MyAdapter(String Titles[],int Icons[],String Name,String Email, int Profile){ // MyAdapter Constructor with titles and icons parameter
         // titles, icons, name, email, profile pic are passed from the main activity as we
@@ -146,67 +174,4 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     private boolean isPositionHeader(int position) {
         return position == 0;
     }
-
-    public static interface OnAnimationEndCompleteListener {
-        void onAnimationComplete();
-    }
-
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        int Holderid;
-
-        TextView textView;
-        TextView detail;
-        ImageView imageView;
-        ImageView profile;
-        TextView Name;
-        TextView email;
-
-        public ViewHolder(final View itemView, int ViewType) {                 // Creating ViewHolder Constructor with View and viewType As a parameter
-            super(itemView);
-
-            // Here we set the appropriate view in accordance with the the view type as passed when the holder object is created
-
-            if (ViewType == TYPE_ITEM) {
-                textView = (TextView) itemView.findViewById(R.id.rowText); // Creating TextView object with the id of textView from item_row.xml
-                imageView = (ImageView) itemView.findViewById(R.id.rowIcon);// Creating ImageView object with the id of ImageView from item_row.xml
-                detail = (TextView) itemView.findViewById(R.id.rowDetail);
-                Holderid = 1;                                               // setting holder id as 1 as the object being populated are of type item row
-
-                textView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        toggleDetail(itemView.getContext());
-                    }
-                });
-                detail.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        toggleDetail(itemView.getContext());
-                    }
-                });
-
-                detail.setVisibility(View.GONE);
-            } else {
-                Name = (TextView) itemView.findViewById(R.id.name);         // Creating Text View object from header.xml for name
-                email = (TextView) itemView.findViewById(R.id.email);       // Creating Text View object from header.xml for email
-                profile = (ImageView) itemView.findViewById(R.id.imageProfile);// Creating Image view object from header.xml for profile pic
-                Holderid = 0;                                                // Setting holder id = 0 as the object being populated are of type header view
-            }
-        }
-
-        private void toggleDetail(Context ctx) {
-            if (detail.isShown()) {
-                Fx.slide_up(ctx, detail, new OnAnimationEndCompleteListener() {
-                    @Override
-                    public void onAnimationComplete() {
-                        detail.setVisibility(View.GONE);
-                    }
-                });
-            } else {
-                detail.setVisibility(View.VISIBLE);
-                Fx.slide_down(ctx, detail);
-            }
-        }
-    }
-
 }

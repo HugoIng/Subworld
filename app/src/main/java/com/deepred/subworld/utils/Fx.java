@@ -5,8 +5,8 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
-import com.deepred.subworld.MyAdapter;
 import com.deepred.subworld.R;
+import com.deepred.subworld.views.MyAdapter;
 
 /**
  * Created by Hugo on 6/17/2016.
