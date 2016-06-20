@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.deepred.subworld.R;
 import com.deepred.subworld.utils.Fx;
 
 
