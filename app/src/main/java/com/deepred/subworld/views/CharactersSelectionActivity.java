@@ -124,7 +124,8 @@ public class CharactersSelectionActivity extends AppCompatActivity implements IU
                                             @Override
                                             public void onUserCreationSuccess() {
                                                 //Intent intent = new Intent(getApplicationContext(), GameActivity.class);
-                                                Intent intent = new Intent(getApplicationContext(), WebGameActivity.class);
+                                                //Intent intent = new Intent(getApplicationContext(), WebGameActivity.class);
+                                                Intent intent = new Intent(getApplicationContext(), MapboxActivity.class);
                                                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                                 CharactersSelectionActivity.this.startActivity(intent);
                                             }

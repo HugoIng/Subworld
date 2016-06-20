@@ -57,14 +57,6 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
                         | View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
                         | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
 
-        mRecyclerView = (RecyclerView) findViewById(R.id.RecyclerView); // Assigning the RecyclerView Object to the xml View
-
-        mRecyclerView.setHasFixedSize(true);                            // Letting the system know that the list objects are of fixed size
-
-        // Menu data
-        User u = MyUserManager.getInstance().getUser();
-        NAME = u.getName();
-        EMAIL = u.getEmail();
 
         mapView = (MapView) findViewById(R.id.mapboxview);
         mapView.onCreate(savedInstanceState);
@@ -76,6 +68,15 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
 
             }
         });
+
+        mRecyclerView = (RecyclerView) findViewById(R.id.RecyclerView); // Assigning the RecyclerView Object to the xml View
+
+        mRecyclerView.setHasFixedSize(true);                            // Letting the system know that the list objects are of fixed size
+
+        // Menu data
+        User u = MyUserManager.getInstance().getUser();
+        NAME = u.getName();
+        EMAIL = u.getEmail();
 
         mAdapter = new MyAdapter(TITLES,ICONS,NAME,EMAIL,R.drawable.c2);       // Creating the Adapter of MyAdapter class(which we are going to see in a bit)
         // And passing the titles,icons,header view name, header view email,

@@ -84,6 +84,7 @@ public class InitApplication extends Activity implements IUserCallbacks {
         super.onDestroy();
         MyUserManager.getInstance().unregister4UserNotifications(this);
     }
+    
 
     private void launchLogin() {
         Intent outI = new Intent(this, LoginActivity.class);
@@ -106,6 +107,7 @@ public class InitApplication extends Activity implements IUserCallbacks {
         //else entrar
         else {
             //Intent intent = new Intent(getApplicationContext(), GameActivity.class);
+            //Intent intent = new Intent(getApplicationContext(), WebGameActivity.class);
             Intent intent = new Intent(getApplicationContext(), MapboxActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             this.startActivity(intent);
