@@ -20,6 +20,8 @@ import com.deepred.subworld.model.User;
 import com.deepred.subworld.utils.IMarkersListener;
 import com.deepred.subworld.utils.MyUserManager;
 import com.google.android.gms.maps.model.LatLng;
+import com.mapbox.mapboxsdk.camera.CameraPosition;
+import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
@@ -27,7 +29,7 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 public class MapboxActivity extends AppCompatActivity implements IMarkersListener {
 
     private String TITLES[] = {"Backpack","Hidden","Thefts","Lost"};
-    private int ICONS[] = {android.R.drawable.ic_media_pause,android.R.drawable.ic_media_pause,android.R.drawable.ic_media_play,android.R.drawable.ic_media_pause};
+    private int ICONS[] = {android.R.drawable.ic_media_play,android.R.drawable.ic_media_play,android.R.drawable.ic_media_play,android.R.drawable.ic_media_play};
     private String NAME = "";
     private String EMAIL = "";
     private String TAG = "MapboxActivity";
@@ -36,6 +38,7 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
     RecyclerView.LayoutManager mLayoutManager;            // Declaring Layout Manager as a linear layout manager
     DrawerLayout drawer;
     private MapView mapView;
+    private MapboxMap map;
     private GameManager gm;
     private boolean isGps;
 
@@ -65,7 +68,20 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
             public void onMapReady(MapboxMap mapboxMap) {
 
                 // Interact with the map using mapboxMap here
+                map = mapboxMap;
 
+                Location l = gm.getLastLocation();
+                com.mapbox.mapboxsdk.geometry.LatLng ll = new com.mapbox.mapboxsdk.geometry.LatLng(l.getLatitude(), l.getLongitude());
+
+                CameraPosition position = new CameraPosition.Builder()
+                        .target(ll) // Sets the new camera position
+                        .zoom(14) // Sets the zoom
+                        .bearing(0) // Rotate the camera
+                        .tilt(30) // Set the camera tilt
+                        .build(); // Creates a CameraPosition from the builder
+
+                mapboxMap.animateCamera(CameraUpdateFactory
+                        .newCameraPosition(position), 7000);
             }
         });
 

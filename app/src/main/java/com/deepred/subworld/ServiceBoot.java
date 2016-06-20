@@ -136,7 +136,7 @@ public class ServiceBoot extends Service implements GoogleApiClient.ConnectionCa
         stopLocationUpdates();
 
         // Si aun no hemos obtenido una localizacion, mantenemos low precission
-        if (requiredGpsMode && gm.getLastLocation() != null) {
+        if (requiredGpsMode && gm.getLastLocationDate() != null) {
             requestLocationUpdates(LOCATION_HIGH_PRECISSION);
         } else {
             requestLocationUpdates(LOCATION_LOW_PRECISSION);
@@ -146,7 +146,7 @@ public class ServiceBoot extends Service implements GoogleApiClient.ConnectionCa
     }
 
     public boolean isUsingGPS() {
-        return (effectiveGpsMode && gm.getLastLocation() != null);
+        return (effectiveGpsMode && gm.getLastLocationDate() != null);
     }
 
     // BBDD Connection callback

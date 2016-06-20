@@ -1,8 +1,11 @@
 package com.deepred.subworld.engine;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.util.Log;
 
+import com.deepred.subworld.ApplicationHolder;
 import com.deepred.subworld.ApplicationLifecycleHandler;
 import com.deepred.subworld.ICommon;
 import com.deepred.subworld.SubworldApplication;
@@ -28,7 +31,7 @@ public class GameManager implements IViewRangeListener {
     private String TAG = "GameManager";
     // User location
     private Location lastLocation;
-    private long lastLocationDate;
+    private Long lastLocationDate;
     private IMarkersListener actListener;
     private SubworldApplication app;
     private UsersViewRangeManager viewRange;
@@ -45,6 +48,7 @@ public class GameManager implements IViewRangeListener {
 
     private GameManager() {
         lastLocation = null;
+        lastLocationDate = null;
         viewRange = UsersViewRangeManager.getInstance();
     }
 
@@ -67,13 +71,44 @@ public class GameManager implements IViewRangeListener {
             lastLocation = location;
             lastLocationDate = System.currentTimeMillis();
 
+            Context ctx = ApplicationHolder.getApp().getBaseContext();
+            SharedPreferences prefs = ctx.getSharedPreferences(ICommon.PREFS_NAME, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putString(ICommon.LAST_LOCATION_LATITUDE, Double.toString(location.getLatitude()));
+            editor.putString(ICommon.LAST_LOCATION_LONGITUDE, Double.toString(location.getLongitude()));
+            editor.putString(ICommon.LAST_LOCATION_PROVIDER,location.getProvider());
+            editor.commit();
+
             // Save my location and eval people in range
             viewRange.update(location);
         }
     }
 
     public Location getLastLocation() {
+        // Devolvemos la localizacion almacenada si no es nula
+        if(lastLocation == null) {
+            Context ctx = ApplicationHolder.getApp().getBaseContext();
+            SharedPreferences prefs = ctx.getSharedPreferences(ICommon.PREFS_NAME, Context.MODE_PRIVATE);
+            String lastLocationLat = prefs.getString(ICommon.LAST_LOCATION_LATITUDE, null);
+            String lastLocationLong = prefs.getString(ICommon.LAST_LOCATION_LONGITUDE, null);
+            String lastLocationProv = prefs.getString(ICommon.LAST_LOCATION_PROVIDER, null);
+            if(lastLocationLat != null && lastLocationLong != null) {
+                // Devolvemos la ultima localizacion de localStorage
+                lastLocation = new Location(lastLocationProv);
+                lastLocation.setLongitude(Double.parseDouble(lastLocationLat));
+                lastLocation.setLatitude(Double.parseDouble(lastLocationLong));
+            } else {
+                // Devolvemos la localizacion por defecto de la app
+                lastLocation = new Location(ICommon.DEFAULT_PROVIDER);
+                lastLocation.setLatitude(ICommon.DEFAULT_LATITUDE);
+                lastLocation.setLongitude(ICommon.DEFAULT_LONGITUDE);
+            }
+        }
         return lastLocation;
+    }
+
+    public Long getLastLocationDate() {
+        return lastLocationDate;
     }
 
     public void setLastLocationIfNull(Location loc) {

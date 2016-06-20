@@ -10,6 +10,13 @@ public class ICommon {
 
     public final static String EMAIL = "email";
     public final static String PASSWORD = "password";
+    public final static String LAST_LOCATION_LATITUDE = "my_last_location_latitude";
+    public final static String LAST_LOCATION_LONGITUDE = "my_last_location_latitude";
+    public final static String LAST_LOCATION_PROVIDER = "my_last_location_provider";
+
+    public final static String DEFAULT_PROVIDER = "default";
+    public final static Double DEFAULT_LATITUDE = 43.267;
+    public final static Double DEFAULT_LONGITUDE = -2.935;
 
     public static final String FIREBASE_REF = "https://subworld.firebaseio.com/";
     public static final String GEO_FIRE_REF = "https://subworld.firebaseio.com/_geofire";
