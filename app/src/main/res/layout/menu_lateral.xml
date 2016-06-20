@@ -14,8 +14,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:orientation="vertical"
-            >
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/nombreUsuario"
@@ -40,10 +39,10 @@
                 android:textStyle="italic" />
 
             <android.support.v7.widget.AppCompatCheckBox
+                android:id="@+id/google_api_chk"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/layoutPerfil"
-                android:id="@+id/google_api_chk"
                 android:text="Use Google Location APIs       "
                 android:textAlignment="center"/>
         </LinearLayout>

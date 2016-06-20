@@ -33,18 +33,17 @@ import com.google.android.gms.maps.model.LatLng;
  */
 public class WebGameActivity extends AppCompatActivity implements IMarkersListener {
 
-    private String TITLES[] = {"Backpack","Hidden","Thefts","Lost"};
-    private int ICONS[] = {android.R.drawable.ic_media_pause,android.R.drawable.ic_media_pause,android.R.drawable.ic_media_play,android.R.drawable.ic_media_pause};
-    private String NAME = "";
-    private String EMAIL = "";
-    private HtmlHelper html;
-    private String TAG = "WebGameActivity";
-
     RecyclerView mRecyclerView;                           // Declaring RecyclerView
     RecyclerView.Adapter mAdapter;                        // Declaring Adapter For Recycler View
     RecyclerView.LayoutManager mLayoutManager;            // Declaring Layout Manager as a linear layout manager
     DrawerLayout drawer;
     WebView webview;
+    private String TITLES[] = {"Backpack", "Hidden", "Thefts", "Lost"};
+    private int ICONS[] = {android.R.drawable.ic_media_play, android.R.drawable.ic_media_play, android.R.drawable.ic_media_play, android.R.drawable.ic_media_play};
+    private String NAME = "";
+    private String EMAIL = "";
+    private HtmlHelper html;
+    private String TAG = "WebGameActivity";
     private GameManager gm;
     private boolean isGps;
 
@@ -74,8 +73,17 @@ public class WebGameActivity extends AppCompatActivity implements IMarkersListen
         NAME = u.getName();
         EMAIL = u.getEmail();
 
+        int imgId = -1;
+        if (u.getChrType() == ICommon.CHRS_ARCHEOLOGIST)
+            imgId = R.drawable.c1;
+        else if (u.getChrType() == ICommon.CHRS_FORT_TELLER)
+            imgId = R.drawable.c2;
+        else if (u.getChrType() == ICommon.CHRS_SPY)
+            imgId = R.drawable.c3;
+        else if (u.getChrType() == ICommon.CHRS_THIEF)
+            imgId = R.drawable.c4;
 
-        mAdapter = new MyAdapter(TITLES,ICONS,NAME,EMAIL,R.drawable.c2);       // Creating the Adapter of MyAdapter class(which we are going to see in a bit)
+        mAdapter = new MyAdapter(TITLES, ICONS, NAME, EMAIL, imgId);       // Creating the Adapter of MyAdapter class(which we are going to see in a bit)
         // And passing the titles,icons,header view name, header view email,
         // and header view profile picture
 
@@ -110,21 +118,6 @@ public class WebGameActivity extends AppCompatActivity implements IMarkersListen
         gm = GameManager.getInstance();
     }
 
-    private class JavaScriptInterface
-    {
-        @JavascriptInterface
-        public void clicked(String uid)
-        {
-            Log.d("WebGameActivity", "clicked: " + uid);
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    webview.playSoundEffect(SoundEffectConstants.CLICK);
-                }
-            });
-        }
-    }
-
     @Override
     protected void onResume() {
         super.onResume();
@@ -151,7 +144,7 @@ public class WebGameActivity extends AppCompatActivity implements IMarkersListen
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if ( keyCode == KeyEvent.KEYCODE_MENU ) {
+        if (keyCode == KeyEvent.KEYCODE_MENU) {
             return true;
         }
         return super.onKeyDown(keyCode, event);
@@ -179,7 +172,8 @@ public class WebGameActivity extends AppCompatActivity implements IMarkersListen
                             | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                             | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                             | View.SYSTEM_UI_FLAG_FULLSCREEN
-                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);}
+                            | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        }
     }
 
     @Override
@@ -202,13 +196,13 @@ public class WebGameActivity extends AppCompatActivity implements IMarkersListen
     @Override
     public void providerChanged(boolean GpsEnabled) {
         Log.d(TAG, "Provider changed: gps enabled:" + GpsEnabled);
-        if(isGps != GpsEnabled) {
+        if (isGps != GpsEnabled) {
             isGps = GpsEnabled;
             final ImageView i = (ImageView) findViewById(R.id.gps_state);
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    if(isGps) {
+                    if (isGps) {
                         i.setImageResource(R.drawable.gps);
                     } else {
                         i.setImageResource(R.drawable.wifi);
@@ -223,4 +217,21 @@ public class WebGameActivity extends AppCompatActivity implements IMarkersListen
         Log.d("WEB", "setZoom" + zoom);
         webview.loadUrl("javascript:setZoom(" + zoom + ")");
     }
+
+    private class JavaScriptInterface {
+        @JavascriptInterface
+        public void clicked(String uid) {
+            Log.d("WebGameActivity", "clicked: " + uid);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    webview.playSoundEffect(SoundEffectConstants.CLICK);
+                }
+            });
+        }
+    }
+
+    /*public void onMenuClick(View v) {
+        Log.d(TAG, "click");
+    }*/
 }
