@@ -20,12 +20,13 @@ import android.webkit.WebViewClient;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 
+import com.deepred.subworld.ICommon;
+import com.deepred.subworld.R;
 import com.deepred.subworld.engine.GameManager;
+import com.deepred.subworld.model.User;
 import com.deepred.subworld.utils.HtmlHelper;
 import com.deepred.subworld.utils.IMarkersListener;
 import com.deepred.subworld.utils.MyUserManager;
-import com.deepred.subworld.R;
-import com.deepred.subworld.model.User;
 import com.google.android.gms.maps.model.LatLng;
 
 /**
