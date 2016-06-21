@@ -14,11 +14,10 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.Toast;
 
 import com.deepred.subworld.ApplicationHolder;
-import com.deepred.subworld.utils.DoubleArrayEvaluator;
-import com.deepred.subworld.engine.GameManager;
-import com.deepred.subworld.utils.IMarkersListener;
 import com.deepred.subworld.R;
 import com.deepred.subworld.ServiceBoot;
+import com.deepred.subworld.engine.GameManager;
+import com.deepred.subworld.utils.DoubleArrayEvaluator;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -33,7 +32,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GameActivity extends AppCompatActivity implements OnMapReadyCallback, IMarkersListener {
+public class GameActivity extends AppCompatActivity implements OnMapReadyCallback/*, IMarkersListener*/ {
 
     private GoogleMap mMap;
     private GameManager gm;
@@ -167,7 +166,7 @@ public class GameActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onResume() {
         super.onResume();
-        gm.registerListener(this);
+        //gm.registerListener(this);
     }
 
     @Override
@@ -215,7 +214,7 @@ public class GameActivity extends AppCompatActivity implements OnMapReadyCallbac
         return false; // false por ahora para que muestre por defecto
     }
 
-    @Override
+    //@Override
     public void updateMarker(String uid, LatLng l) {
         Marker m = markers.get(uid);
         if (m != null) {
@@ -225,7 +224,7 @@ public class GameActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    @Override
+    //@Override
     public void updateMyMarker(Location loc) {
         LatLng l = new LatLng(loc.getLatitude(), loc.getLongitude());
         if(myMark != null) {
@@ -242,7 +241,7 @@ public class GameActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    @Override
+    //@Override
     public void removeMarker(String uid) {
         Marker m = markers.get(uid);
         if(m != null) {
@@ -251,14 +250,14 @@ public class GameActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    @Override
+    //@Override
     public void setZoom(float zoom) {
         mMap.animateCamera(CameraUpdateFactory.zoomTo(zoom));
     }
 
 
 
-    @Override
+    //@Override
     public void providerChanged(boolean GpsEnabled) {
         if(isGps != GpsEnabled) {
             isGps = GpsEnabled;

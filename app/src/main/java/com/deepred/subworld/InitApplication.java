@@ -66,6 +66,11 @@ public class InitApplication extends Activity implements IUserCallbacks {
 
                 @Override
                 public void onLoginOk(boolean wait4User) {
+                    ServiceBoot serv = ApplicationHolder.getApp().getServiceBoot();
+                    if(serv != null)
+                        serv.onBBDDConnected();
+                    else
+                        ServiceBoot.setBBDDConnected();
                     DataManager.getInstance().getUser();
                 }
 

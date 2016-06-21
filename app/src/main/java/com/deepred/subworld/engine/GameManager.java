@@ -14,11 +14,13 @@ import com.deepred.subworld.utils.IMarkersListener;
 import com.deepred.subworld.utils.IUserCallbacks;
 import com.deepred.subworld.utils.IViewRangeListener;
 import com.deepred.subworld.utils.MyUserManager;
-import com.google.android.gms.maps.model.LatLng;
+import com.mapbox.mapboxsdk.geometry.LatLng;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
+//import com.google.android.gms.maps.model.LatLng;
 
 /**
  * Created by aplicaty on 25/02/16.
@@ -95,8 +97,8 @@ public class GameManager implements IViewRangeListener {
             if(lastLocationLat != null && lastLocationLong != null) {
                 // Devolvemos la ultima localizacion de localStorage
                 lastLocation = new Location(lastLocationProv);
-                lastLocation.setLongitude(Double.parseDouble(lastLocationLat));
-                lastLocation.setLatitude(Double.parseDouble(lastLocationLong));
+                lastLocation.setLatitude(Double.parseDouble(lastLocationLat));
+                lastLocation.setLongitude(Double.parseDouble(lastLocationLong));
             } else {
                 // Devolvemos la localizacion por defecto de la app
                 lastLocation = new Location(ICommon.DEFAULT_PROVIDER);
@@ -278,8 +280,8 @@ public class GameManager implements IViewRangeListener {
 
         final User myUser = MyUserManager.getInstance().getUser();
         Location otherUserLocation = new Location("?");
-        otherUserLocation.setLatitude(loc.latitude);
-        otherUserLocation.setLongitude(loc.longitude);
+        otherUserLocation.setLatitude(loc.getLatitude());
+        otherUserLocation.setLongitude(loc.getLongitude());
         final float distance = lastLocation.distanceTo(otherUserLocation);
 
         // Obtener el usuario de la BBDD

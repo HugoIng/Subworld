@@ -25,14 +25,13 @@ import com.deepred.subworld.R;
 import com.deepred.subworld.engine.GameManager;
 import com.deepred.subworld.model.User;
 import com.deepred.subworld.utils.HtmlHelper;
-import com.deepred.subworld.utils.IMarkersListener;
 import com.deepred.subworld.utils.MyUserManager;
 import com.google.android.gms.maps.model.LatLng;
 
 /**
  *
  */
-public class WebGameActivity extends AppCompatActivity implements IMarkersListener {
+public class WebGameActivity extends AppCompatActivity /*implements IMarkersListener*/ {
 
     RecyclerView mRecyclerView;                           // Declaring RecyclerView
     RecyclerView.Adapter mAdapter;                        // Declaring Adapter For Recycler View
@@ -122,7 +121,7 @@ public class WebGameActivity extends AppCompatActivity implements IMarkersListen
     @Override
     protected void onResume() {
         super.onResume();
-        gm.registerListener(this);
+        //gm.registerListener(this);
     }
 
     @Override
@@ -177,24 +176,24 @@ public class WebGameActivity extends AppCompatActivity implements IMarkersListen
         }
     }
 
-    @Override
+    //@Override
     public void updateMarker(String uid, LatLng latLng) {
         Log.d("WEB", "updateMarker" + latLng.latitude + "," + latLng.longitude + ", uid:" + uid);
         webview.loadUrl("javascript:updateMarker('" + uid + "'," + latLng.latitude + "," + latLng.longitude + ")");
     }
 
-    @Override
+    //@Override
     public void updateMyMarker(Location loc) {
         Log.d("WEB", "updateMyMarker: " + loc.getLatitude() + "," + loc.getLongitude() + ", bearing:" + loc.getBearing() + ", provider:" + loc.getProvider());
         webview.loadUrl("javascript:updateMyMarker(" + loc.getLatitude() + "," + loc.getLongitude() + "," + loc.getBearing() + ")");
     }
 
-    @Override
+    //@Override
     public void removeMarker(String uid) {
         webview.loadUrl("javascript:removeMarker(" + uid + ")");
     }
 
-    @Override
+    //@Override
     public void providerChanged(boolean GpsEnabled) {
         Log.d(TAG, "Provider changed: gps enabled:" + GpsEnabled);
         if (isGps != GpsEnabled) {
@@ -213,7 +212,7 @@ public class WebGameActivity extends AppCompatActivity implements IMarkersListen
         }
     }
 
-    @Override
+    //@Override
     public void setZoom(float zoom) {
         Log.d("WEB", "setZoom" + zoom);
         webview.loadUrl("javascript:setZoom(" + zoom + ")");

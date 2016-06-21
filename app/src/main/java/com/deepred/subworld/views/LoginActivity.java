@@ -29,7 +29,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.deepred.subworld.ApplicationHolder;
 import com.deepred.subworld.ICommon;
+import com.deepred.subworld.ServiceBoot;
 import com.deepred.subworld.utils.MyUserManager;
 import com.deepred.subworld.R;
 import com.deepred.subworld.engine.DataManager;
@@ -150,6 +152,13 @@ public class LoginActivity extends AppCompatActivity implements LoaderManager.Lo
                 @Override
                 public void onLoginOk(boolean wait4User) {
                     showProgress(false);
+
+                    ServiceBoot serv = ApplicationHolder.getApp().getServiceBoot();
+                    if(serv != null)
+                        serv.onBBDDConnected();
+                    else
+                        ServiceBoot.setBBDDConnected();
+
                     DataManager.getInstance().getUser();
 
                     //Store login y password en preferencias

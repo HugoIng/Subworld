@@ -7,10 +7,12 @@ import com.deepred.subworld.ApplicationHolder;
 import com.deepred.subworld.ICommon;
 import com.deepred.subworld.ServiceBoot;
 import com.firebase.geofire.GeoLocation;
-import com.google.android.gms.maps.model.LatLng;
+import com.mapbox.mapboxsdk.geometry.LatLng;
 
 import java.util.ArrayList;
 import java.util.List;
+
+//import com.google.android.gms.maps.model.LatLng;
 
 /**
  * Created by aplicaty on 29/02/16.

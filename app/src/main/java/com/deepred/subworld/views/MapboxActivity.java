@@ -2,6 +2,7 @@ package com.deepred.subworld.views;
 
 import android.location.Location;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -13,18 +14,26 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.Toast;
 
+import com.deepred.subworld.ICommon;
 import com.deepred.subworld.R;
 import com.deepred.subworld.engine.GameManager;
 import com.deepred.subworld.model.User;
 import com.deepred.subworld.utils.IMarkersListener;
 import com.deepred.subworld.utils.MyUserManager;
-import com.google.android.gms.maps.model.LatLng;
+import com.mapbox.mapboxsdk.annotations.Marker;
+import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
+import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MapboxActivity extends AppCompatActivity implements IMarkersListener {
 
@@ -41,6 +50,15 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
     private MapboxMap map;
     private GameManager gm;
     private boolean isGps;
+
+    // Markers
+    private MarkerOptions myMark;
+    private Map<String,MarkerOptions> markers;
+    private double zoom;
+
+    private Location pendingMyMark;
+    private Map<String,LatLng> pendingMarkers;
+    private Double pendingZoom;
 
 
     @Override
@@ -60,6 +78,12 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
                         | View.SYSTEM_UI_FLAG_FULLSCREEN // hide status bar
                         | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
 
+        myMark = null;
+        markers = new HashMap<>();
+        zoom = 14.00;
+        pendingMyMark = null;
+        pendingMarkers = new HashMap<>();
+        pendingZoom = null;
 
         mapView = (MapView) findViewById(R.id.mapboxview);
         mapView.onCreate(savedInstanceState);
@@ -70,23 +94,30 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
                 // Interact with the map using mapboxMap here
                 map = mapboxMap;
 
-                Location l = gm.getLastLocation();
-                com.mapbox.mapboxsdk.geometry.LatLng ll = new com.mapbox.mapboxsdk.geometry.LatLng(l.getLatitude(), l.getLongitude());
+                // Set pending markers and zoom if they exist
+                if(pendingZoom != null) {
+                    zoom = Double.valueOf(pendingZoom);
+                    setZoom(zoom);
+                }
+                if(pendingMyMark != null) {
+                    updateMyMarker(pendingMyMark);
+                } else {
+                    updateMyMarker(gm.getLastLocation());
+                }
+                if(pendingMarkers.size() > 0) {
+                    ArrayList<String> keys = (ArrayList<String>) pendingMarkers.keySet();
 
-                CameraPosition position = new CameraPosition.Builder()
-                        .target(ll) // Sets the new camera position
-                        .zoom(14) // Sets the zoom
-                        .bearing(0) // Rotate the camera
-                        .tilt(30) // Set the camera tilt
-                        .build(); // Creates a CameraPosition from the builder
-
-                mapboxMap.animateCamera(CameraUpdateFactory
-                        .newCameraPosition(position), 7000);
+                    for(int i=0; i < keys.size(); i++) {
+                        String key = keys.get(i);
+                        LatLng l = pendingMarkers.get(key);
+                        pendingMarkers.remove(key);
+                        updateMarker(key, l);
+                    }
+                }
             }
         });
 
         mRecyclerView = (RecyclerView) findViewById(R.id.RecyclerView); // Assigning the RecyclerView Object to the xml View
-
         mRecyclerView.setHasFixedSize(true);                            // Letting the system know that the list objects are of fixed size
 
         // Menu data
@@ -94,7 +125,17 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
         NAME = u.getName();
         EMAIL = u.getEmail();
 
-        mAdapter = new MyAdapter(TITLES,ICONS,NAME,EMAIL,R.drawable.c2);       // Creating the Adapter of MyAdapter class(which we are going to see in a bit)
+        int imgId = -1;
+        if (u.getChrType() == ICommon.CHRS_ARCHEOLOGIST)
+            imgId = R.drawable.c1;
+        else if (u.getChrType() == ICommon.CHRS_FORT_TELLER)
+            imgId = R.drawable.c2;
+        else if (u.getChrType() == ICommon.CHRS_SPY)
+            imgId = R.drawable.c3;
+        else if (u.getChrType() == ICommon.CHRS_THIEF)
+            imgId = R.drawable.c4;
+
+        mAdapter = new MyAdapter(TITLES,ICONS,NAME,EMAIL,imgId);       // Creating the Adapter of MyAdapter class(which we are going to see in a bit)
         // And passing the titles,icons,header view name, header view email,
         // and header view profile picture
 
@@ -151,10 +192,6 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
         super.onBackPressed();
     }
 
-    /*
-    onSaveInstanceState();
-    onLowMemory();
-    onDestroy();*/
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -191,19 +228,85 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
 
     @Override
     public void updateMarker(String uid, LatLng latLng) {
-        Log.d("WEB", "updateMarker" + latLng.latitude + "," + latLng.longitude + ", uid:" + uid);
-        //webview.loadUrl("javascript:updateMarker('" + uid + "'," + latLng.latitude + "," + latLng.longitude + ")");
+        Log.d("WEB", "updateMarker" + latLng.getLatitude() + "," + latLng.getLongitude() + ", uid:" + uid);
+
+        MarkerOptions m = markers.get(uid);
+        if(m != null) {
+            m.position(latLng);
+        } else {
+            m = new MarkerOptions()
+                    .position(latLng)
+                    .title("User " + uid)
+                    //.icon(icon));
+                    .snippet("marker to user " + uid);
+            if(map != null) {
+                markers.put(uid, m);
+                map.addMarker(m);
+                map.setOnMarkerClickListener(new MapboxMap.OnMarkerClickListener() {
+                    @Override
+                    public boolean onMarkerClick(@NonNull Marker marker) {
+                        Toast.makeText(MapboxActivity.this, marker.getTitle(), Toast.LENGTH_LONG).show();
+                        return true;
+                    }
+                });
+            } else {
+                pendingMarkers.put(uid,latLng);
+            }
+        }
     }
 
     @Override
     public void updateMyMarker(Location loc) {
         Log.d("WEB", "updateMyMarker: " + loc.getLatitude() + "," + loc.getLongitude() + ", bearing:" + loc.getBearing() + ", provider:" + loc.getProvider());
-        //webview.loadUrl("javascript:updateMyMarker(" + loc.getLatitude() + "," + loc.getLongitude() + "," + loc.getBearing() + ")");
+
+        if(myMark != null) {
+            myMark.position(new LatLng(loc.getLatitude(), loc.getLongitude()));
+        } else {
+            if(map != null) {
+                LatLng latLng = new LatLng(loc.getLatitude(), loc.getLongitude());
+                MarkerOptions m = new MarkerOptions()
+                        .position(latLng)
+                        .title("Me")
+                        //.icon(icon));
+                        .snippet("my marker");
+                myMark = m;
+                map.addMarker(myMark);
+
+                map.setOnMarkerClickListener(new MapboxMap.OnMarkerClickListener() {
+                    @Override
+                    public boolean onMarkerClick(@NonNull Marker marker) {
+                        Toast.makeText(MapboxActivity.this, marker.getTitle(), Toast.LENGTH_LONG).show();
+                        return true;
+                    }
+                });
+
+                CameraPosition position = new CameraPosition.Builder()
+                        .target(latLng) // Sets the new camera position
+                        .zoom(zoom) // Sets the zoom
+                        .bearing(0) // Rotate the camera
+                        .tilt(30) // Set the camera tilt
+                        .build(); // Creates a CameraPosition from the builder
+
+                map.animateCamera(CameraUpdateFactory
+                        .newCameraPosition(position), 7000);
+
+            } else {
+                pendingMyMark = loc;
+            }
+        }
     }
 
     @Override
     public void removeMarker(String uid) {
-        //webview.loadUrl("javascript:removeMarker(" + uid + ")");
+        if(map != null) {
+            MarkerOptions m = markers.get(uid);
+            if (m != null) {
+                markers.remove(uid);
+                map.removeMarker(m.getMarker());
+            }
+        } else {
+            pendingMarkers.remove(uid);
+        }
     }
 
     @Override
@@ -226,9 +329,18 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
     }
 
     @Override
-    public void setZoom(float zoom) {
+    public void setZoom(double zoom) {
         Log.d("WEB", "setZoom" + zoom);
-        //la webview.loadUrl("javascript:setZoom(" + zoom + ")");
+        if(map != null) {
+            CameraPosition position = new CameraPosition.Builder()
+                    .zoom(zoom) // Sets the zoom
+                    .build(); // Creates a CameraPosition from the builder
+
+            map.animateCamera(CameraUpdateFactory
+                    .newCameraPosition(position), 7000);
+        } else {
+            pendingZoom = zoom;
+        }
     }
 
 }

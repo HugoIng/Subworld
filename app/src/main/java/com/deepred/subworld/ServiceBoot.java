@@ -51,8 +51,10 @@ public class ServiceBoot extends Service implements GoogleApiClient.ConnectionCa
     private static boolean requiredGpsMode = false;
     private boolean effectiveGpsMode = false;
 
-    private boolean isConnected; // Flag indicating BBDD connection. Prevents location requests before the app is logued into the BBDD.
+    private boolean isConnectedLocations; // Flag indicating Google API connection.
     private boolean requestLocationsStarted; // Flag indicating locations are being requested already
+
+    private static boolean isConnectedBBDD = false; // Flag indicating BBDD conection is OK
 
     // TODO
     // Estrategias de localizacion: iniciar en modo LOW_PRECISSION.
@@ -75,7 +77,7 @@ public class ServiceBoot extends Service implements GoogleApiClient.ConnectionCa
         app.setServiceBoot(this);
         gm = GameManager.getInstance();
 
-        isConnected = false;
+        isConnectedLocations = false;
         requestLocationsStarted = false;
 
         // Register receiver that handles screen on and screen off logic
@@ -97,6 +99,9 @@ public class ServiceBoot extends Service implements GoogleApiClient.ConnectionCa
         gm.setLastLocationIfNull(getLastLocation(LOCATION_LOW_PRECISSION));
 
         Log.d(TAG, "ServiceBoot initiated");
+
+        if(isConnectedBBDD)
+            isConnectedBBDD = true;
     }
 
     @Override
@@ -126,7 +131,7 @@ public class ServiceBoot extends Service implements GoogleApiClient.ConnectionCa
 
         requiredGpsMode = useGPS;
 
-        if(!isConnected) {
+        if(!isConnectedLocations || !isConnectedBBDD) {
             return;
         }
 
@@ -151,9 +156,14 @@ public class ServiceBoot extends Service implements GoogleApiClient.ConnectionCa
 
     // BBDD Connection callback
 
+
+    public static void setBBDDConnected() {
+        isConnectedBBDD = true;
+    }
+
     public void onBBDDConnected() {
-        isConnected = true;
-        if(!requestLocationsStarted)
+        isConnectedBBDD = true;
+        if(!requestLocationsStarted && isConnectedLocations)
             switchProvider(gm.checkBackgroundStatus());
     }
 
@@ -252,7 +262,9 @@ public class ServiceBoot extends Service implements GoogleApiClient.ConnectionCa
     //Google Api callbacks
     @Override
     public void onConnected(Bundle bundle) {
-        switchProvider(gm.checkBackgroundStatus());
+        isConnectedLocations = true;
+        if(isConnectedBBDD)
+            switchProvider(gm.checkBackgroundStatus());
     }
 
     @Override
