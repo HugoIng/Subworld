@@ -264,6 +264,17 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
         } else {
             if(map != null) {
                 LatLng latLng = new LatLng(loc.getLatitude(), loc.getLongitude());
+
+                CameraPosition position = new CameraPosition.Builder()
+                        .target(latLng) // Sets the new camera position
+                        .zoom(zoom) // Sets the zoom
+                        .bearing(0) // Rotate the camera
+                        .tilt(30) // Set the camera tilt
+                        .build(); // Creates a CameraPosition from the builder
+
+                map.animateCamera(CameraUpdateFactory
+                        .newCameraPosition(position), 7000);
+
                 MarkerOptions m = new MarkerOptions()
                         .position(latLng)
                         .title("Me")
@@ -279,16 +290,6 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
                         return true;
                     }
                 });
-
-                CameraPosition position = new CameraPosition.Builder()
-                        .target(latLng) // Sets the new camera position
-                        .zoom(zoom) // Sets the zoom
-                        .bearing(0) // Rotate the camera
-                        .tilt(30) // Set the camera tilt
-                        .build(); // Creates a CameraPosition from the builder
-
-                map.animateCamera(CameraUpdateFactory
-                        .newCameraPosition(position), 7000);
 
             } else {
                 pendingMyMark = loc;
