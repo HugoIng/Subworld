@@ -8,7 +8,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -35,7 +34,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MapboxActivity extends AppCompatActivity implements IMarkersListener {
+public class MapboxActivity extends AppCompatActivity implements IMarkersListener, MapboxMap.OnMarkerClickListener {
 
     private String TITLES[] = {"Backpack","Hidden","Thefts","Lost"};
     private int ICONS[] = {android.R.drawable.ic_media_play,android.R.drawable.ic_media_play,android.R.drawable.ic_media_play,android.R.drawable.ic_media_play};
@@ -63,7 +62,7 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d("MapboxActivity", "onCreate");
+        Log.d(TAG, "onCreate");
         setTitle("Subworld");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mapbox);
@@ -114,6 +113,8 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
                         updateMarker(key, l);
                     }
                 }
+
+                map.setOnMarkerClickListener(MapboxActivity.this);
             }
         });
 
@@ -146,7 +147,6 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
 
         gm = GameManager.getInstance();
     }
-
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
@@ -192,13 +192,10 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
         super.onBackPressed();
     }
 
-
     @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if ( keyCode == KeyEvent.KEYCODE_MENU ) {
-            return true;
-        }
-        return super.onKeyDown(keyCode, event);
+    public boolean onMarkerClick(@NonNull Marker marker) {
+        Toast.makeText(MapboxActivity.this, marker.getTitle(), Toast.LENGTH_LONG).show();
+        return true;
     }
 
     @Override
@@ -227,26 +224,29 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
     }
 
     @Override
-    public void updateMarker(String uid, LatLng latLng) {
-        Log.d("WEB", "updateMarker" + latLng.getLatitude() + "," + latLng.getLongitude() + ", uid:" + uid);
+    public void updateMarker(String uid, final LatLng latLng) {
+        Log.d(TAG, "updateMarker" + latLng.getLatitude() + "," + latLng.getLongitude() + ", uid:" + uid);
 
-        MarkerOptions m = markers.get(uid);
+        final MarkerOptions m = markers.get(uid);
         if(m != null) {
-            m.position(latLng);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    m.position(latLng);
+                }
+            });
         } else {
-            m = new MarkerOptions()
+            final MarkerOptions m2 = new MarkerOptions()
                     .position(latLng)
                     .title("User " + uid)
                     //.icon(icon));
                     .snippet("marker to user " + uid);
             if(map != null) {
-                markers.put(uid, m);
-                map.addMarker(m);
-                map.setOnMarkerClickListener(new MapboxMap.OnMarkerClickListener() {
+                markers.put(uid, m2);
+                runOnUiThread(new Runnable() {
                     @Override
-                    public boolean onMarkerClick(@NonNull Marker marker) {
-                        Toast.makeText(MapboxActivity.this, marker.getTitle(), Toast.LENGTH_LONG).show();
-                        return true;
+                    public void run() {
+                        map.addMarker(m2);
                     }
                 });
             } else {
@@ -257,23 +257,22 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
 
     @Override
     public void updateMyMarker(Location loc) {
-        Log.d("WEB", "updateMyMarker: " + loc.getLatitude() + "," + loc.getLongitude() + ", bearing:" + loc.getBearing() + ", provider:" + loc.getProvider());
+        Log.d(TAG, "updateMyMarker: " + loc.getLatitude() + "," + loc.getLongitude() + ", bearing:" + loc.getBearing() + ", provider:" + loc.getProvider());
 
         if(myMark != null) {
+
+
             myMark.position(new LatLng(loc.getLatitude(), loc.getLongitude()));
         } else {
             if(map != null) {
                 LatLng latLng = new LatLng(loc.getLatitude(), loc.getLongitude());
 
-                CameraPosition position = new CameraPosition.Builder()
+                final CameraPosition position = new CameraPosition.Builder()
                         .target(latLng) // Sets the new camera position
                         .zoom(zoom) // Sets the zoom
                         .bearing(0) // Rotate the camera
                         .tilt(30) // Set the camera tilt
                         .build(); // Creates a CameraPosition from the builder
-
-                map.animateCamera(CameraUpdateFactory
-                        .newCameraPosition(position), 7000);
 
                 MarkerOptions m = new MarkerOptions()
                         .position(latLng)
@@ -281,16 +280,15 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
                         //.icon(icon));
                         .snippet("my marker");
                 myMark = m;
-                map.addMarker(myMark);
 
-                map.setOnMarkerClickListener(new MapboxMap.OnMarkerClickListener() {
+                runOnUiThread(new Runnable() {
                     @Override
-                    public boolean onMarkerClick(@NonNull Marker marker) {
-                        Toast.makeText(MapboxActivity.this, marker.getTitle(), Toast.LENGTH_LONG).show();
-                        return true;
+                    public void run() {
+                        map.animateCamera(CameraUpdateFactory
+                                .newCameraPosition(position), 3000);
+                        map.addMarker(myMark);
                     }
                 });
-
             } else {
                 pendingMyMark = loc;
             }
@@ -300,10 +298,15 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
     @Override
     public void removeMarker(String uid) {
         if(map != null) {
-            MarkerOptions m = markers.get(uid);
+            final MarkerOptions m = markers.get(uid);
             if (m != null) {
                 markers.remove(uid);
-                map.removeMarker(m.getMarker());
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        map.removeMarker(m.getMarker());
+                    }
+                });
             }
         } else {
             pendingMarkers.remove(uid);
@@ -330,17 +333,24 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
     }
 
     @Override
-    public void setZoom(double zoom) {
+    public void setZoom(double _zoom) {
         Log.d("WEB", "setZoom" + zoom);
+        zoom = _zoom;
+
         if(map != null) {
-            CameraPosition position = new CameraPosition.Builder()
+            final CameraPosition position = new CameraPosition.Builder()
                     .zoom(zoom) // Sets the zoom
                     .build(); // Creates a CameraPosition from the builder
 
-            map.animateCamera(CameraUpdateFactory
-                    .newCameraPosition(position), 7000);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    map.animateCamera(CameraUpdateFactory
+                            .newCameraPosition(position), 3000);
+                }
+            });
         } else {
-            pendingZoom = zoom;
+            pendingZoom = _zoom;
         }
     }
 
