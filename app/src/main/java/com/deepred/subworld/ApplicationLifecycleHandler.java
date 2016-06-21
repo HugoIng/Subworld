@@ -11,7 +11,7 @@ import com.deepred.subworld.engine.GameManager;
 /**
  * Created by aplicaty on 25/02/16.
  */
-public class ApplicationLifecycleHandler implements Application.ActivityLifecycleCallbacks, ComponentCallbacks2/*, IBBDDConnectionCallback*/ {
+public class ApplicationLifecycleHandler implements Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
 
     private static final String TAG = ApplicationLifecycleHandler.class.getSimpleName();
     private static Object lock = new Object();
