@@ -10,6 +10,7 @@ import android.util.Log;
 import com.deepred.subworld.engine.DataManager;
 import com.deepred.subworld.model.User;
 import com.deepred.subworld.notifications.BaseNotificationBuilder;
+import com.deepred.subworld.service.ServiceBoot;
 import com.deepred.subworld.utils.IUserCallbacks;
 import com.deepred.subworld.utils.MyUserManager;
 import com.deepred.subworld.views.CharactersSelectionActivity;

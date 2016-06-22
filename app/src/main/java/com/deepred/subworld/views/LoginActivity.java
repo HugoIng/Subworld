@@ -31,7 +31,7 @@ import android.widget.TextView;
 
 import com.deepred.subworld.ApplicationHolder;
 import com.deepred.subworld.ICommon;
-import com.deepred.subworld.ServiceBoot;
+import com.deepred.subworld.service.ServiceBoot;
 import com.deepred.subworld.utils.MyUserManager;
 import com.deepred.subworld.R;
 import com.deepred.subworld.engine.DataManager;

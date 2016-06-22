@@ -1,4 +1,4 @@
-package com.deepred.subworld;
+package com.deepred.subworld.service;
 
 import android.Manifest;
 import android.app.Service;
@@ -18,6 +18,11 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 
+import com.deepred.subworld.ApplicationHolder;
+import com.deepred.subworld.ICommon;
+import com.deepred.subworld.R;
+import com.deepred.subworld.ScreenReceiver;
+import com.deepred.subworld.SubworldApplication;
 import com.deepred.subworld.engine.GameManager;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -31,18 +36,21 @@ import com.google.android.gms.location.LocationSettingsResult;
 /**
  * Created by Hugo.
  *
- * Manages location providers and app status
+ * Sticky service managing location providers and app status
+ * Strategy used: it start in LOW_PRECISSION mode (wifi/network),
+ * when the app goes to the foreground it switches to HIGH_PRECISSION.
+ * HIGH_PRECISSION is maintained as long as the app is foreground and
+ * there are users within range; otherwise it goes back to LOW_PRECISSION
  */
 public class ServiceBoot extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
 
+    // Inner accessors and constants
+    private final static String TAG = "Service";
     private SubworldApplication app;
     private GameManager gm;
-    private final static String TAG = "Service";
-
     private static int LOCATION_LOW_PRECISSION = 0;
     private static int LOCATION_HIGH_PRECISSION = 1;
 
-    private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 1000;
 
     // Google Location API
     private GoogleApiClient mGoogleApiClient;
@@ -71,7 +79,6 @@ public class ServiceBoot extends Service implements GoogleApiClient.ConnectionCa
     @Override
     public void onCreate() {
         super.onCreate();
-        //icConnected = false;
         app = (SubworldApplication) getApplication();
         ApplicationHolder.setAplicatyApplication(app);
         app.setServiceBoot(this);
@@ -98,7 +105,7 @@ public class ServiceBoot extends Service implements GoogleApiClient.ConnectionCa
         
         gm.setLastLocationIfNull(getLastLocation(LOCATION_LOW_PRECISSION));
 
-        Log.d(TAG, "ServiceBoot initiated");
+        Log.d(TAG, "Service Created");
 
         if(isConnectedBBDD)
             isConnectedBBDD = true;
@@ -119,7 +126,7 @@ public class ServiceBoot extends Service implements GoogleApiClient.ConnectionCa
     }
 
     public static void setProvider(boolean useGPS) {
-        Log.d(TAG, "SwitchProvider: use GPS:" + useGPS);
+        Log.d(TAG, "Static switchProvider: use GPS:" + useGPS);
         if (useGPS == requiredGpsMode)
             return;
 
@@ -127,7 +134,7 @@ public class ServiceBoot extends Service implements GoogleApiClient.ConnectionCa
     }
 
     public void switchProvider(boolean useGPS) {
-        Log.d(TAG, "switchProvider: use GPS:" + useGPS);
+        Log.d(TAG, "SwitchProvider: use GPS:" + useGPS);
 
         requiredGpsMode = useGPS;
 
@@ -179,6 +186,7 @@ public class ServiceBoot extends Service implements GoogleApiClient.ConnectionCa
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
+            Log.e(TAG,getString(R.string.no_permissions));
             return;
         }
 
@@ -274,7 +282,7 @@ public class ServiceBoot extends Service implements GoogleApiClient.ConnectionCa
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.e("SERVICE", "Google Loc Apis connection error");
+        Log.e(TAG, "Google Loc Apis connection error");
     }
 
     public class LocalBinder extends Binder {
@@ -292,7 +300,7 @@ public class ServiceBoot extends Service implements GoogleApiClient.ConnectionCa
             switchProvider(requiredGpsMode);
         }
 
-        // Si pasan 15 segundos y no se obtiene localizacion en modo gps, volver a modo red
+        // After 15 seconds, if no location is retrieved, go back to LOW_PRECISSION mode.
         Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             public void run() {

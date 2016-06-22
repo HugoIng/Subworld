@@ -101,7 +101,7 @@
             android:screenOrientation="portrait"></activity>
 
         <service
-            android:name=".ServiceBoot"
+            android:name=".service.ServiceBoot"
             android:action="com.deepred.subworld.Service"
             android:enabled="true"
             android:exported="true"></service>

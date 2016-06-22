@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.support.multidex.MultiDexApplication;
 import android.util.Log;
 
+import com.deepred.subworld.service.ServiceBoot;
 import com.deepred.subworld.utils.OnBackPressed;
 
 import java.util.Properties;

@@ -5,7 +5,7 @@ import android.util.Log;
 
 import com.deepred.subworld.ApplicationHolder;
 import com.deepred.subworld.ICommon;
-import com.deepred.subworld.ServiceBoot;
+import com.deepred.subworld.service.ServiceBoot;
 import com.firebase.geofire.GeoLocation;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 

@@ -7,6 +7,7 @@ import android.content.res.Configuration;
 import android.os.Bundle;
 
 import com.deepred.subworld.engine.GameManager;
+import com.deepred.subworld.service.ServiceBoot;
 
 /**
  * Created by aplicaty on 25/02/16.
