@@ -199,7 +199,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderManager.Lo
         }
         //else entrar
         else {
-            //Intent intent = new Intent(getApplicationContext(), GameActivity.class);
             Intent intent = new Intent(getApplicationContext(), MapboxActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             this.startActivity(intent);

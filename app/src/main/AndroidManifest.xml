@@ -89,16 +89,6 @@
             android:label="@string/character_screen"
             android:launchMode="singleTop"
             android:screenOrientation="portrait"></activity>
-        <activity
-            android:name=".views.GameActivity"
-            android:label="@string/title_activity_game"
-            android:launchMode="singleTop"
-            android:screenOrientation="portrait"></activity>
-        <activity
-            android:name=".views.WebGameActivity"
-            android:label="@string/title_activity_game"
-            android:launchMode="singleTop"
-            android:screenOrientation="portrait"></activity>
 
         <service
             android:name=".service.ServiceBoot"

@@ -9,7 +9,6 @@ import android.os.IBinder;
 import android.util.Log;
 
 import com.deepred.subworld.ApplicationHolder;
-import com.deepred.subworld.ScreenReceiver;
 import com.deepred.subworld.SubworldApplication;
 import com.deepred.subworld.engine.GameManager;
 

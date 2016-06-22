@@ -1,8 +1,10 @@
-package com.deepred.subworld;
+package com.deepred.subworld.service;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+
+import com.deepred.subworld.ApplicationLifecycleHandler;
 
 /**
  * Created by aplicaty on 25/02/16.

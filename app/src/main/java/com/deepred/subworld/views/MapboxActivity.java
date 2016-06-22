@@ -1,8 +1,10 @@
 package com.deepred.subworld.views;
 
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -21,6 +23,8 @@ import com.deepred.subworld.engine.GameManager;
 import com.deepred.subworld.model.User;
 import com.deepred.subworld.utils.IMarkersListener;
 import com.deepred.subworld.utils.MyUserManager;
+import com.mapbox.mapboxsdk.annotations.Icon;
+import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
@@ -274,10 +278,15 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
                         .tilt(30) // Set the camera tilt
                         .build(); // Creates a CameraPosition from the builder
 
+                // Create an Icon object for the marker to use
+                IconFactory iconFactory = IconFactory.getInstance(this);
+                Drawable iconDrawable = ContextCompat.getDrawable(this, R.drawable.arrow_smaller);
+                Icon icon = iconFactory.fromDrawable(iconDrawable);
+
                 MarkerOptions m = new MarkerOptions()
                         .position(latLng)
                         .title("Me")
-                        //.icon(icon));
+                        //.icon(icon)
                         .snippet("my marker");
                 myMark = m;
 
