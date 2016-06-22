@@ -38,4 +38,5 @@
     <string name="mapbox_access_token">pk.eyJ1IjoiaDRoaCIsImEiOiJjaXBreHJ3OGUwMDg0djVucWRuOXMxcXkxIn0.X30_SvfBjH6UgGM7Qr8L7w</string>
     <string name="desc">An Virtual Geocaching Adventure</string>
     <string name="no_permissions">No permissions to request location updates</string>
+    <string name="loc_apis_conn_err">Google Loc Apis connection error</string>
 </resources>

@@ -1,67 +1,37 @@
 package com.deepred.subworld.service;
 
-import android.Manifest;
 import android.app.Service;
 import android.content.BroadcastReceiver;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
-import android.location.Location;
 import android.os.Binder;
-import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
-import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
 
 import com.deepred.subworld.ApplicationHolder;
-import com.deepred.subworld.ICommon;
-import com.deepred.subworld.R;
 import com.deepred.subworld.ScreenReceiver;
 import com.deepred.subworld.SubworldApplication;
 import com.deepred.subworld.engine.GameManager;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResult;
 
 
 /**
  * Created by Hugo.
  *
  * Sticky service managing location providers and app status
- * Strategy used: it start in LOW_PRECISSION mode (wifi/network),
+ * Strategy used: it starts in LOW_PRECISSION mode (wifi/network),
  * when the app goes to the foreground it switches to HIGH_PRECISSION.
  * HIGH_PRECISSION is maintained as long as the app is foreground and
  * there are users within range; otherwise it goes back to LOW_PRECISSION
  */
-public class ServiceBoot extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
+public class ServiceBoot extends Service  {
 
     // Inner accessors and constants
     private final static String TAG = "Service";
     private SubworldApplication app;
     private GameManager gm;
-    private static int LOCATION_LOW_PRECISSION = 0;
-    private static int LOCATION_HIGH_PRECISSION = 1;
-
-
-    // Google Location API
-    private GoogleApiClient mGoogleApiClient;
-    private LocationRequest mLocationRequest;
+    private GoogleLocationServiceImpl locImpl;
 
     private static boolean requiredGpsMode = false;
-    private boolean effectiveGpsMode = false;
-
-    private boolean isConnectedLocations; // Flag indicating Google API connection.
-    private boolean requestLocationsStarted; // Flag indicating locations are being requested already
-
     private static boolean isConnectedBBDD = false; // Flag indicating BBDD conection is OK
 
     // TODO
@@ -84,31 +54,17 @@ public class ServiceBoot extends Service implements GoogleApiClient.ConnectionCa
         app.setServiceBoot(this);
         gm = GameManager.getInstance();
 
-        isConnectedLocations = false;
-        requestLocationsStarted = false;
-
         // Register receiver that handles screen on and screen off logic
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         BroadcastReceiver mReceiver = new ScreenReceiver();
         registerReceiver(mReceiver, filter);
 
-        // Create an instance of GoogleAPIClient.
-        if (mGoogleApiClient == null) {
-            mGoogleApiClient = new GoogleApiClient.Builder(this)
-                    .addConnectionCallbacks(this)
-                    .addOnConnectionFailedListener(this)
-                    .addApi(LocationServices.API)
-                    .build();
-        }
-        mGoogleApiClient.connect();
-        
-        gm.setLastLocationIfNull(getLastLocation(LOCATION_LOW_PRECISSION));
+        locImpl = new GoogleLocationServiceImpl(this);
 
         Log.d(TAG, "Service Created");
 
-        if(isConnectedBBDD)
-            isConnectedBBDD = true;
+        switchProvider(gm.checkBackgroundStatus());
     }
 
     @Override
@@ -121,228 +77,73 @@ public class ServiceBoot extends Service implements GoogleApiClient.ConnectionCa
     public void onDestroy() {
         super.onDestroy();
         app.setServiceBoot(null);
-        stopLocationUpdates();
-        mGoogleApiClient.disconnect();
+        locImpl.disconnect();
+        locImpl = null;
     }
 
-    public static void setProvider(boolean useGPS) {
-        Log.d(TAG, "Static switchProvider: use GPS:" + useGPS);
-        if (useGPS == requiredGpsMode)
-            return;
 
-        requiredGpsMode = useGPS;
-    }
-
+    /*
+    * Request locations and set mode
+     */
     public void switchProvider(boolean useGPS) {
         Log.d(TAG, "SwitchProvider: use GPS:" + useGPS);
-
         requiredGpsMode = useGPS;
 
-        if(!isConnectedLocations || !isConnectedBBDD) {
-            return;
-        }
-
-        if (requiredGpsMode == effectiveGpsMode)
+        if(!isConnectedBBDD)
             return;
 
-        stopLocationUpdates();
-
-        // Si aun no hemos obtenido una localizacion, mantenemos low precission
-        if (requiredGpsMode && gm.getLastLocationDate() != null) {
-            requestLocationUpdates(LOCATION_HIGH_PRECISSION);
-        } else {
-            requestLocationUpdates(LOCATION_LOW_PRECISSION);
-        }
-
-        requestLocationsStarted = true;
+        locImpl.switchProvider(requiredGpsMode);
+    }
+    /*
+    * Static method to be used when the app starts before the service does
+     */
+    public static void setProvider(boolean useGPS) {
+        Log.d(TAG, "Static switchProvider: use GPS:" + useGPS);
+        requiredGpsMode = useGPS;
     }
 
-    public boolean isUsingGPS() {
-        return (effectiveGpsMode && gm.getLastLocationDate() != null);
+    /*public boolean isUsingGPS() {
+        return (locImpl.isGpsMode() && gm.getLastLocationDate() != null);
+    }*/
+
+
+
+    /*
+    * Called when connection to firebase succeeds.
+    * If the location service is prepared but not started, start collecting locations
+    * Init with app's status back/foreground
+     */
+    public void onBBDDConnected() {
+        isConnectedBBDD = true;
+
+        if(!locImpl.isStarted())
+            switchProvider(gm.checkBackgroundStatus());
     }
-
-    // BBDD Connection callback
-
-
+    /*
+    * Static method to be used when the app starts before the service does
+     */
     public static void setBBDDConnected() {
         isConnectedBBDD = true;
     }
 
-    public void onBBDDConnected() {
-        isConnectedBBDD = true;
-        if(!requestLocationsStarted && isConnectedLocations)
-            switchProvider(gm.checkBackgroundStatus());
-    }
-
-
-    //Android Location methods
-    private void requestLocationUpdates(int precission) {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            Log.e(TAG,getString(R.string.no_permissions));
-            return;
-        }
-
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(ICommon.LOCATION_GOOGLE_TIME_INTERVAL);
-        mLocationRequest.setFastestInterval(ICommon.LOCATION_MIN_TIME_BW_UPDATES);
-
-        int priority;
-        if(precission == LOCATION_HIGH_PRECISSION) {
-            priority = LocationRequest.PRIORITY_HIGH_ACCURACY;
-            effectiveGpsMode = true;
-        } else {
-            priority = LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY;
-            effectiveGpsMode = false;
-        }
-
-        mLocationRequest.setPriority(priority);
-
-        mLocationRequest.setSmallestDisplacement(ICommon.LOCATION_MIN_DISTANCE_CHANGE_FOR_UPDATES);
-
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
-                .addLocationRequest(mLocationRequest);
-
-        final PendingResult<LocationSettingsResult> result = LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient, builder.build());
-        /*result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
-            @Override
-            public void onResult(LocationSettingsResult locationSettingsResult) {
-                final Status status = locationSettingsResult.getStatus();
-                final LocationSettingsStates = locationSettingsResult.getLocationSettingsStates();
-                switch (status.getStatusCode()) {
-                    case LocationSettingsStatusCodes.SUCCESS:
-                        // All location settings are satisfied. The client can
-                        // initialize location requests here.
-                        //...
-                        break;
-                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                        // Location settings are not satisfied, but this can be fixed
-                        // by showing the user a dialog.
-                        try {
-                            // Show the dialog by calling startResolutionForResult(),
-                            // and check the result in onActivityResult().
-                            status.startResolutionForResult(
-                                    OuterClass.this,
-                                    REQUEST_CHECK_SETTINGS);
-                        } catch (IntentSender.SendIntentException e) {
-                            // Ignore the error.
-                        }
-                        break;
-                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                        // Location settings are not satisfied. However, we have no way
-                        // to fix the settings so we won't show the dialog.
-                        //...
-                        break;
-                }
-            }
-        });*/
-
-        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
-    }
-
-    public void stopLocationUpdates() {
-        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-    }
-
-    public Location getLastLocation(int precission) {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return null; //TODO;
-        }
-
-        return LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-    }
-
-    //Google Api callbacks
-    @Override
-    public void onConnected(Bundle bundle) {
-        isConnectedLocations = true;
+    /*
+    * Called when Google Location APIs connect successfully.
+    * Init with app's status back/foreground
+     */
+    protected void onLocImplConnected () {
         if(isConnectedBBDD)
             switchProvider(gm.checkBackgroundStatus());
     }
 
-    @Override
-    public void onConnectionSuspended(int i) {
-        mGoogleApiClient.connect();
+    protected boolean isRequiredGpsMode() {
+        return requiredGpsMode;
     }
 
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.e(TAG, "Google Loc Apis connection error");
-    }
 
     public class LocalBinder extends Binder {
         public ServiceBoot getService() {
             return ServiceBoot.this;
         }
-    }
-
-
-    @Override
-    public void onLocationChanged(Location loc) {
-        gm.locationChange(loc);
-
-        if(requiredGpsMode != effectiveGpsMode) {
-            switchProvider(requiredGpsMode);
-        }
-
-        // After 15 seconds, if no location is retrieved, go back to LOW_PRECISSION mode.
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            public void run() {
-                if(gm.getLastLocation().getTime() > System.currentTimeMillis() - ICommon.DISABLE_GPS_IF_NO_LOCATIONS_AFTER)
-
-                switchProvider(false);
-            }
-        }, ICommon.DISABLE_GPS_IF_NO_LOCATIONS_AFTER);
-    }
-
-    /**
-     * Function to show settings alert dialog
-     * */
-    public void showSettingsAlert(){
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(getApplicationContext());
-
-        // Setting Dialog Title
-        alertDialog.setTitle("GPS is settings");
-
-        // Setting Dialog Message
-        alertDialog.setMessage("GPS is not enabled. Do you want to go to settings menu?");
-
-        // Setting Icon to Dialog
-        //alertDialog.setIcon(R.drawable.delete);
-
-        // On pressing Settings button
-        alertDialog.setPositiveButton("Settings", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog,int which) {
-                Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                getApplicationContext().startActivity(intent);
-            }
-        });
-
-        // on pressing cancel button
-        alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-
-        // Showing Alert Message
-        alertDialog.show();
     }
 
 }
