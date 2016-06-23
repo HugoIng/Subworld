@@ -8,7 +8,7 @@ import com.mapbox.mapboxsdk.geometry.LatLng;
 /**
  *
  */
-public interface IMarkersListener {
+public interface IMapUpdatesListener {
     public void updateMarker(String uid, LatLng latLng);
     public void updateMyMarker(Location loc);
     public void removeMarker(String uid);

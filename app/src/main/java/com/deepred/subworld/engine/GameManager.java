@@ -10,7 +10,7 @@ import com.deepred.subworld.ApplicationLifecycleHandler;
 import com.deepred.subworld.ICommon;
 import com.deepred.subworld.SubworldApplication;
 import com.deepred.subworld.model.User;
-import com.deepred.subworld.utils.IMarkersListener;
+import com.deepred.subworld.utils.IMapUpdatesListener;
 import com.deepred.subworld.utils.IUserCallbacks;
 import com.deepred.subworld.utils.IViewRangeListener;
 import com.deepred.subworld.utils.MyUserManager;
@@ -34,7 +34,7 @@ public class GameManager implements IViewRangeListener {
     // User location
     private Location lastLocation;
     private Long lastLocationDate;
-    private IMarkersListener actListener;
+    private IMapUpdatesListener actListener;
     private SubworldApplication app;
     private UsersViewRangeManager viewRange;
     //Messages pendientes
@@ -118,7 +118,7 @@ public class GameManager implements IViewRangeListener {
             lastLocation = loc;
     }
 
-    public void registerListener(IMarkersListener act) {
+    public void registerListener(IMapUpdatesListener act) {
         actListener = act;
 
         if(hasMyLocationPending) {

@@ -21,7 +21,7 @@ import com.deepred.subworld.ICommon;
 import com.deepred.subworld.R;
 import com.deepred.subworld.engine.GameManager;
 import com.deepred.subworld.model.User;
-import com.deepred.subworld.utils.IMarkersListener;
+import com.deepred.subworld.utils.IMapUpdatesListener;
 import com.deepred.subworld.utils.MyUserManager;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
@@ -38,7 +38,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MapboxActivity extends AppCompatActivity implements IMarkersListener, MapboxMap.OnMarkerClickListener {
+public class MapboxActivity extends AppCompatActivity implements IMapUpdatesListener, MapboxMap.OnMarkerClickListener {
 
     private String TITLES[] = {"Backpack","Hidden","Thefts","Lost"};
     private int ICONS[] = {android.R.drawable.ic_media_play,android.R.drawable.ic_media_play,android.R.drawable.ic_media_play,android.R.drawable.ic_media_play};
@@ -260,13 +260,16 @@ public class MapboxActivity extends AppCompatActivity implements IMarkersListene
     }
 
     @Override
-    public void updateMyMarker(Location loc) {
+    public void updateMyMarker(final Location loc) {
         Log.d(TAG, "updateMyMarker: " + loc.getLatitude() + "," + loc.getLongitude() + ", bearing:" + loc.getBearing() + ", provider:" + loc.getProvider());
 
         if(myMark != null) {
-
-
-            myMark.position(new LatLng(loc.getLatitude(), loc.getLongitude()));
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    myMark.position(new LatLng(loc.getLatitude(), loc.getLongitude()));
+                }
+            });
         } else {
             if(map != null) {
                 LatLng latLng = new LatLng(loc.getLatitude(), loc.getLongitude());
