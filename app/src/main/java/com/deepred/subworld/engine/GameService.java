@@ -5,25 +5,22 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.ResultReceiver;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.os.ResultReceiver;
 import android.util.Log;
 
 import com.deepred.subworld.ICommon;
-import com.deepred.subworld.InitApplication;
 import com.deepred.subworld.model.User;
 import com.deepred.subworld.utils.ILoginCallbacks;
 import com.deepred.subworld.utils.IUserCallbacks;
 import com.deepred.subworld.utils.IViewRangeListener;
 import com.deepred.subworld.utils.MyUserManager;
-import com.deepred.subworld.views.LoginActivity;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-//import com.google.android.gms.maps.model.LatLng;
 
 /**
  * Created by aplicaty on 25/02/16.
@@ -155,11 +152,6 @@ public class GameService extends IntentService implements IViewRangeListener {
                 @Override
                 public void onLoginOk(boolean wait4User) {
                     Log.v(TAG, "Requesting login on firebase");
-                    /*LocationService serv = ApplicationHolder.getApp().getLocationService();
-                    if(serv != null)
-                        serv.onBBDDConnected();
-                    else
-                        LocationService.setBBDDConnected();*/
 
                     Intent localIntent = new Intent(ICommon.BBDD_CONNECTED);
                     // Broadcasts the Intent to receivers in this app.
@@ -167,41 +159,20 @@ public class GameService extends IntentService implements IViewRangeListener {
 
                     DataManager.getInstance().getUser();
 
-                    if (screen_context.equals(LoginActivity.class.getName())) {
-                        // From LoginActivity: notify the screen to update interface
-                        ResultReceiver rec = workIntent.getParcelableExtra(ICommon.RESULT_RECEIVER);
-                        //Bundle b= new Bundle();
-                        //b.putString("ServiceTag","aziz");
-                        rec.send(Activity.RESULT_OK, /*b*/ null);
-                    }
+                    // Notify the screen to update interface
+                    ResultReceiver rec = workIntent.getParcelableExtra(ICommon.RESULT_RECEIVER);
+                    //Bundle b= new Bundle();
+                    //b.putString("ServiceTag","aziz");
+                    rec.send(Activity.RESULT_OK, /*b*/ null);
                 }
 
                 @Override
                 public void onLoginError() {
-
-                    if (screen_context.equals(InitApplication.class.getName())) {
-                        // From InitActivity navigate to loginActivity
-                        Intent outI = new Intent(GameService.this, LoginActivity.class);
-                        outI.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        startActivity(outI);
-                    } else {
-                        // From LoginActivity: notify the screen to update interface
-                        ResultReceiver rec = workIntent.getParcelableExtra(ICommon.RESULT_RECEIVER);
-                        //Bundle b= new Bundle();
-                        //b.putString("ServiceTag","aziz");
-                        rec.send(Activity.RESULT_CANCELED, /*b*/ null);
-                    }
-
-
-                    // Si es desde la pantalla de init
-                    Intent outI = new Intent(GameService.this, LoginActivity.class);
-                    outI.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(outI);
-
-                    // Si es desde la de login, motrar error
-                    /*showProgress(false);
-                    mPasswordView.setError(getString(R.string.error_incorrect_password));
-                    mPasswordView.requestFocus();*/
+                    // From LoginActivity: notify the screen to update interface
+                    ResultReceiver rec = workIntent.getParcelableExtra(ICommon.RESULT_RECEIVER);
+                    //Bundle b= new Bundle();
+                    //b.putString("ServiceTag","aziz");
+                    rec.send(Activity.RESULT_CANCELED, /*b*/ null);
                 }
             });
         }
@@ -377,15 +348,6 @@ public class GameService extends IntentService implements IViewRangeListener {
         // Si pasamos a foreground subimos la precision del GPS
         updateProvider(!backgroudStatus);
     }
-
-    /*private boolean checkBackgroundStatus() {
-        Log.d(TAG, "checkBackgroundStatus");
-        boolean backgroudStatus = ApplicationLifecycleHandler.getInstance().isAppInBackground();
-        boolean useGps = !backgroudStatus;
-        updateProvider(useGps);
-        return useGps;
-    }*/
-
 
     public void checkVisibility(String uid, LatLng loc, final UsersViewRangeManager.IVisibilityCompletionListener cb) {
         // Aplicar las reglas de visibilidad entre mi usuario y este

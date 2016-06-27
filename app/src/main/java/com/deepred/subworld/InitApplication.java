@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.ResultReceiver;
 import android.util.Log;
 
 import com.deepred.subworld.engine.GameService;
@@ -60,39 +61,24 @@ public class InitApplication extends Activity implements IUserCallbacks {
 
             MyUserManager.getInstance().register4UserNotifications(this);
 
-            /*Thread thread = new Thread() {
-                @Override
-                public void run() {
-                    Log.v(TAG, "Executing login on firebase");
-                    // Login with credentials
-                    DataManager.getInstance().loginOrRegister(email, password, new LoginActivity.ILoginCallbacks() {
-
-                        @Override
-                        public void onLoginOk(boolean wait4User) {
-                            Log.v(TAG, "Executing login on firebase");
-                            LocationService serv = ApplicationHolder.getApp().getLocationService();
-                            if(serv != null)
-                                serv.onBBDDConnected();
-                            else
-                                LocationService.setBBDDConnected();
-                            DataManager.getInstance().getUser();
-                        }
-
-                        @Override
-                        public void onLoginError() {
-                            launchLogin();
-                        }
-                    });
-                }
-            };
-            thread.start();*/
-
             // Request login or register with the background service
             Intent mServiceIntent = new Intent(this, GameService.class);
             mServiceIntent.setData(Uri.parse(ICommon.LOGIN_REGISTER));
             mServiceIntent.putExtra(ICommon.EMAIL, email);
             mServiceIntent.putExtra(ICommon.PASSWORD, password);
             mServiceIntent.putExtra(ICommon.SCREEN_CONTEXT, getLocalClassName());
+            mServiceIntent.putExtra(ICommon.RESULT_RECEIVER, new ResultReceiver(null) {
+                @Override
+                protected void onReceiveResult(int resultCode, Bundle resultData) {
+                    super.onReceiveResult(resultCode, resultData);
+                    if (resultCode == RESULT_OK) {
+                        Log.d(TAG, "Login OK!");
+                    } else {
+                        Log.d(TAG, "Login failed!");
+                        launchLogin();
+                    }
+                }
+            });
             startService(mServiceIntent); // Starts the IntentService
 
         } else {

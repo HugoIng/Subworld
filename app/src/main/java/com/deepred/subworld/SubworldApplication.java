@@ -9,8 +9,6 @@ import com.deepred.subworld.service.LocationService;
 import com.deepred.subworld.service.StatusReceiver;
 import com.deepred.subworld.utils.OnBackPressed;
 
-import java.util.Properties;
-
 /**
  * Created by aplicaty on 25/02/16.
  */
@@ -19,39 +17,11 @@ public class SubworldApplication extends MultiDexApplication {
     private SharedPreferences preferences;
 
     private LocationService locationService;
-    //private StatusReceiver handler;
-    private Properties properties = new Properties();
     private OnBackPressed onBackPressed;
 
 
     public SubworldApplication() {
         super();
-
-        /*handler = new StatusReceiver();
-
-        // Register receiver that handles screen on and screen off logic and background state
-        IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
-        filter.addAction(Intent.ACTION_SCREEN_OFF);
-        filter.addAction(ICommon.BACKGROUND_STATUS);
-        filter.addAction(ICommon.BBDD_CONNECTED);
-        registerReceiver(handler, filter);
-        registerActivityLifecycleCallbacks(handler);
-        registerComponentCallbacks(handler);*/
-
-        /*if (locationService == null) {
-            startService(new Intent(this, LocationService.class));
-        } else {
-            Log.d(TAG, "Service already started");
-
-        }*/
-    }
-
-    @Override
-    public void onTerminate() {
-        super.onTerminate();
-        /*unregisterActivityLifecycleCallbacks(handler);
-        unregisterComponentCallbacks(handler);
-        unregisterReceiver(handler);*/
     }
 
     public SharedPreferences getPreferences() {
@@ -76,7 +46,6 @@ public class SubworldApplication extends MultiDexApplication {
         this.locationService = locationService;
         handler.setService(locationService);
         registerActivityLifecycleCallbacks(handler);
-        registerComponentCallbacks(handler);
     }
 
 

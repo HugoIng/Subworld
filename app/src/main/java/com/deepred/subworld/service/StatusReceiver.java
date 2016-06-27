@@ -10,13 +10,11 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 
-import com.deepred.subworld.ApplicationHolder;
 import com.deepred.subworld.ICommon;
-import com.deepred.subworld.SubworldApplication;
 import com.deepred.subworld.engine.GameService;
 
 /**
- * Created by aplicaty on 25/02/16.
+ *
  */
 public class StatusReceiver extends BroadcastReceiver implements Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     private static final String TAG = "StatusReceiver";
@@ -118,10 +116,10 @@ public class StatusReceiver extends BroadcastReceiver implements Application.Act
 
     private void setIsAppInBackground(boolean state) {
         isAppInBackgroundState = state;
-        SubworldApplication app = ApplicationHolder.getApp();
-        if (app != null) {
+        //SubworldApplication app = ApplicationHolder.getApp();
+        //if (app != null) {
             sendAppInBackgroundStatus(isAppInBackgroundState);
-        }
+        //}
     }
 
     private void sendAppInBackgroundStatus(boolean status) {
@@ -141,10 +139,10 @@ public class StatusReceiver extends BroadcastReceiver implements Application.Act
     public void updateScreenStatus(boolean screenState) {
         screenOff = screenState;
         if (!isAppInBackgroundState) {
-            SubworldApplication app = ApplicationHolder.getApp();
-            if (app != null) {
+            //SubworldApplication app = ApplicationHolder.getApp();
+            //if (app != null) {
                 sendAppInBackgroundStatus(screenOff);
-            }
+            //}
         }
     }
 }

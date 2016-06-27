@@ -8,7 +8,6 @@ import android.os.IBinder;
 import android.util.Log;
 
 import com.deepred.subworld.ApplicationHolder;
-import com.deepred.subworld.ApplicationLifecycleHandler;
 import com.deepred.subworld.ICommon;
 
 
@@ -62,10 +61,7 @@ public abstract class LocationService extends Service {
         filter.addAction(ICommon.BACKGROUND_STATUS);
         filter.addAction(ICommon.BBDD_CONNECTED);
         registerReceiver(handler, filter);
-        //registerActivityLifecycleCallbacks(handler);
         registerComponentCallbacks(handler);
-
-        //handler.setService(this);
 
         Log.d(TAG, "Service Created");
 
@@ -112,11 +108,7 @@ public abstract class LocationService extends Service {
     }
 
     private void getBackgroundStatus() {
-        /*Intent mServiceIntent = new Intent(this, GameService.class);
-        mServiceIntent.setData(Uri.parse(ICommon.GET_BACKGROUND_STATUS));
-        startService(mServiceIntent); // Starts the IntentService*/
-
-        boolean status = ApplicationLifecycleHandler.getInstance().isAppInBackground();
+        boolean status = handler.isAppInBackground();
         switchProvider(status);
     }
 

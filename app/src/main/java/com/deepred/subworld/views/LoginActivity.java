@@ -149,41 +149,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderManager.Lo
         } else {
             // Show a progress spinner, and kick off a background task to perform the user login attempt.
             showProgress(true);
-            /*DataManager.getInstance().loginOrRegister(email, password, new ILoginCallbacks() {
-                @Override
-                public void onLoginOk(boolean wait4User) {
-                    showProgress(false);
-
-                    LocationService serv = ApplicationHolder.getApp().getLocationService();
-                    if(serv != null)
-                        serv.onBBDDConnected();
-                    else
-                        LocationService.setBBDDConnected();
-
-                    DataManager.getInstance().getUser();
-
-                    //Store login y password en preferencias
-                    SharedPreferences.Editor editor = prefs.edit();
-                    editor.putString(ICommon.EMAIL, email);
-                    editor.putString(ICommon.PASSWORD, password);
-                    // Commit the edits!
-                    editor.commit();
-                }
-
-                @Override
-                public void onLoginError() {
-                    showProgress(false);
-                    mPasswordView.setError(getString(R.string.error_incorrect_password));
-                    mPasswordView.requestFocus();
-                }
-            });*/
-
-            //Store login y password en preferencias
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putString(ICommon.EMAIL, email);
-            editor.putString(ICommon.PASSWORD, password);
-            // Commit the edits!
-            editor.commit();
 
             // Request background login with the service
             Intent mServiceIntent = new Intent(this, GameService.class);
@@ -191,21 +156,28 @@ public class LoginActivity extends AppCompatActivity implements LoaderManager.Lo
             mServiceIntent.putExtra(ICommon.EMAIL, email);
             mServiceIntent.putExtra(ICommon.PASSWORD, password);
             mServiceIntent.putExtra(ICommon.SCREEN_CONTEXT, getLocalClassName());
-
             mServiceIntent.putExtra(ICommon.RESULT_RECEIVER, new ResultReceiver(null) {
                 @Override
                 protected void onReceiveResult(int resultCode, Bundle resultData) {
                     super.onReceiveResult(resultCode, resultData);
                     if (resultCode == RESULT_OK) {
                         Log.d(TAG, "Login OK!");
+
+                        //Store login y password en preferencias
+                        SharedPreferences.Editor editor = prefs.edit();
+                        editor.putString(ICommon.EMAIL, email);
+                        editor.putString(ICommon.PASSWORD, password);
+                        // Commit the edits!
+                        editor.commit();
+
                     } else {
+                        Log.d(TAG, "Login failed!");
                         showProgress(false);
                         mPasswordView.setError(getString(R.string.error_incorrect_password));
                         mPasswordView.requestFocus();
                     }
                 }
             });
-
             startService(mServiceIntent); // Starts the IntentService
         }
     }
