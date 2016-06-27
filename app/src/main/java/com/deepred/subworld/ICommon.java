@@ -94,6 +94,65 @@ public class ICommon {
     // Locations
     public final static int LOCATION_TYPE_USER = 0;
     public final static int LOCATION_TYPE_TREASURE = 1;
+    // Location related constants
+    // The minimum distance to change Updates in meters
+    public static final long LOCATION_MIN_DISTANCE_CHANGE_FOR_UPDATES = 5; // 5 meters
+    // The minimum time between updates in milliseconds
+    public static final long LOCATION_MIN_TIME_BW_UPDATES = 1000 * 10; // 10 seconds
+    public static final long LOCATION_GOOGLE_TIME_INTERVAL = 15000;
+    public static final long TIME_ESTIMATED_FOR_QUERY_COMPLETION = 10000; // In milliseconds
+    public static final int MIN_USERS_IN_RANGE = 10;
+    public static final int MAX_USERS_IN_RANGE = 30;
+    public static final int MAX_RANGE = 1500; // In meters
+    public static final int RANGE_VARIATION = 100; // In meters
+    public static final int MIN_RANGE = 40; // In meters
+    public static final int SMALL_RANGE_VARIATION = 10; // In meters
+    public static final int DISABLE_GPS_IF_NO_LOCATIONS_AFTER = 10000; // Milliseconds
+    // Distance tables
+    public static final int DISTANCE_RANGE_0 = 10; // In meters
+    public static final int DISTANCE_RANGE_1 = 20; // In meters
+
+    // Refresh rate for the screen with other user distance
+    // la frecuencia a la que se debe consultar los puntos en funcion de la distancia de los otros usuarios
+
+    // El provider de localizacion cambia cuando hay otros usuarios a una distancia menor de XXX m
+    public static final int DISTANCE_RANGE_2 = 30; // In meters
+    public static final int DISTANCE_RANGE_3 = 60; // In meters
+    public static final int DISTANCE_RANGE_4 = 100; // In meters
+    public static final int DISTANCE_RANGE_5 = 200; // In meters
+    public static final int[] distanceRanges = {
+            DISTANCE_RANGE_0, DISTANCE_RANGE_1, DISTANCE_RANGE_2, DISTANCE_RANGE_3, DISTANCE_RANGE_4, DISTANCE_RANGE_5
+    };
+    // first field is the result of the diference of skills, second field is DISTANCE_RANGE_x
+    public static final boolean[][] distanceTable = {
+            {true, false, false, false, false, false},
+            {true, true, false, false, false, false},
+            {true, true, false, false, false, false},
+            {true, true, true, false, false, false},
+            {true, true, true, false, false, false},
+            {true, true, true, false, false, false},
+            {true, true, true, true, false, false},
+            {true, true, true, true, true, false},
+            {true, true, true, true, true, true}
+    };
+    // IntentService velues received by GameService
+    public static final String NEW_LOCATION_FROM_SRV = "new_location_from_srv";
+    public static final String MAP_ACTIVITY_RESUMED = "map_activity_resumed";
+    public static final String MAP_ACTIVITY_PAUSED = "map_activity_paused";
+    public static final String SET_BACKGROUND_STATUS = "get_background_status";
+    public static final String LOGIN_REGISTER = "login_register";
+    public static final String SCREEN_CONTEXT = "screen_context";
+    public static final String RESULT_RECEIVER = "result";
+    // Local broadcasts done by GameService
+    public static final String MY_LOCATION = "my_location";
+    public static final String RIVAL_LOCATION = "rival_location";
+    public static final String REMOVE_RIVAL_LOCATION = "remove_rival_location";
+    public static final String SET_ZOOM = "set_zoom";
+    public static final String SET_PROVIDER_INFO = "set_provider_info";
+    public static final String UID = "uid";
+    // Custom broadcasts sent to StatusReceiver
+    public static final String BACKGROUND_STATUS = "background_status";
+    public static final String BBDD_CONNECTED = "bbdd_connected";
     public static float[] EvolutionFactorValues = {1.0f, 0.75f, 0.5f, 0.33f};
     // Matriz con 4 filas, una por cada tipo de personaje
     // Las columnas son cada una de las habilidades
@@ -136,62 +195,5 @@ public class ICommon {
                     {DEFAULT_DEFENSE_THIEF, EVOLUTION_FACTOR_THREE}
             }
     };
-
-
-
-    // Location related constants
-    // The minimum distance to change Updates in meters
-    public static final long LOCATION_MIN_DISTANCE_CHANGE_FOR_UPDATES = 5; // 5 meters
-
-    // The minimum time between updates in milliseconds
-    public static final long LOCATION_MIN_TIME_BW_UPDATES = 1000 * 10; // 10 seconds
-
-    public static final long LOCATION_GOOGLE_TIME_INTERVAL = 15000;
-
-    public static final long TIME_ESTIMATED_FOR_QUERY_COMPLETION =  10000; // In milliseconds
-
-    public static final int MIN_USERS_IN_RANGE = 10;
-    public static final int MAX_USERS_IN_RANGE = 30;
-
-    public static final int MAX_RANGE = 1500; // In meters
-    public static final int RANGE_VARIATION = 100; // In meters
-    public static final int MIN_RANGE = 40; // In meters
-    public static final int SMALL_RANGE_VARIATION = 10; // In meters
-
-    public static final int DISABLE_GPS_IF_NO_LOCATIONS_AFTER = 10000; // Milliseconds
-
-    // Refresh rate for the screen with other user distance
-    // la frecuencia a la que se debe consultar los puntos en funcion de la distancia de los otros usuarios
-
-    // El provider de localizacion cambia cuando hay otros usuarios a una distancia menor de XXX m
-
-
-
-
-    // Distance tables
-    public static final int DISTANCE_RANGE_0 = 10; // In meters
-    public static final int DISTANCE_RANGE_1 = 20; // In meters
-    public static final int DISTANCE_RANGE_2 = 30; // In meters
-    public static final int DISTANCE_RANGE_3 = 60; // In meters
-    public static final int DISTANCE_RANGE_4 = 100; // In meters
-    public static final int DISTANCE_RANGE_5 = 200; // In meters
-
-    public static final int[] distanceRanges = {
-            DISTANCE_RANGE_0, DISTANCE_RANGE_1, DISTANCE_RANGE_2, DISTANCE_RANGE_3, DISTANCE_RANGE_4, DISTANCE_RANGE_5
-    };
-
-    // first field is the result of the diference of skills, second field is DISTANCE_RANGE_x
-    public static final boolean[][] distanceTable = {
-            {true,false,false,false,false,false},
-            {true,true,false,false,false,false},
-            {true,true,false,false,false,false},
-            {true,true,true,false,false,false},
-            {true,true,true,false,false,false},
-            {true,true,true,false,false,false},
-            {true,true,true,true,false,false},
-            {true,true,true,true,true,false},
-            {true,true,true,true,true,true}
-    };
-
 
 }

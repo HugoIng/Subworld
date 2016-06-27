@@ -6,8 +6,7 @@ import android.content.ComponentCallbacks2;
 import android.content.res.Configuration;
 import android.os.Bundle;
 
-import com.deepred.subworld.engine.GameManager;
-import com.deepred.subworld.service.ServiceBoot;
+import com.deepred.subworld.service.LocationService;
 
 /**
  * Created by aplicaty on 25/02/16.
@@ -17,7 +16,6 @@ public class ApplicationLifecycleHandler implements Application.ActivityLifecycl
     private static final String TAG = ApplicationLifecycleHandler.class.getSimpleName();
     private static Object lock = new Object();
     private static volatile ApplicationLifecycleHandler instance = null;
-    //private GameManager gm;
 
     private boolean isAppInBackgroundState; // Real app status Foreground / Background
     private boolean screenOff; // Device screen is on/off
@@ -25,7 +23,6 @@ public class ApplicationLifecycleHandler implements Application.ActivityLifecycl
     private ApplicationLifecycleHandler() {
         isAppInBackgroundState = true;
         screenOff = false;
-        //gm = GameManager.getInstance();
     }
 
     public static ApplicationLifecycleHandler getInstance() {
@@ -103,15 +100,15 @@ public class ApplicationLifecycleHandler implements Application.ActivityLifecycl
     }
 
     private void sendAppInBackgroundStatus(boolean status) {
-        GameManager.getInstance().changeBackgroundState(status);
+        //GameService.getInstance().changeBackgroundState(status);
 
         boolean useGPS = !status;
 
-        ServiceBoot serv = ApplicationHolder.getApp().getServiceBoot();
+        LocationService serv = ApplicationHolder.getApp().getLocationService();
         if(serv != null)
             serv.switchProvider(useGPS);
         else
-            ServiceBoot.setProvider(useGPS);
+            LocationService.setProvider(useGPS);
     }
 
     public void updateScreenStatus(boolean screenState) {

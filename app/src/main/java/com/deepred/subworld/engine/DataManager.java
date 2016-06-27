@@ -5,10 +5,10 @@ import android.util.Log;
 
 import com.deepred.subworld.ApplicationHolder;
 import com.deepred.subworld.ICommon;
-import com.deepred.subworld.utils.IUserCallbacks;
-import com.deepred.subworld.views.LoginActivity;
-import com.deepred.subworld.utils.MyUserManager;
 import com.deepred.subworld.model.User;
+import com.deepred.subworld.utils.ILoginCallbacks;
+import com.deepred.subworld.utils.IUserCallbacks;
+import com.deepred.subworld.utils.MyUserManager;
 import com.deepred.subworld.views.CharactersSelectionActivity;
 import com.firebase.client.AuthData;
 import com.firebase.client.DataSnapshot;
@@ -25,10 +25,10 @@ import java.util.Map;
 /**
  * Created by aplicaty on 25/02/16.
  */
-public class DataManager implements GeoQueryEventListener {
-    private String TAG = "DataManager";
+class DataManager implements GeoQueryEventListener {
     private static volatile DataManager INSTANCE;
     private static Object obj = new Object();
+    private String TAG = "DataManager";
     private Firebase dbRef = null;
     private GeoFire dbGeoRef = null;
     private GeoQuery geoQuery;
@@ -41,7 +41,7 @@ public class DataManager implements GeoQueryEventListener {
         dbGeoRef = new GeoFire(new Firebase(ICommon.GEO_FIRE_REF));
     }
 
-    public static DataManager getInstance(){
+    static DataManager getInstance(){
         if(INSTANCE == null){
             synchronized(obj){
                 if(INSTANCE == null){
@@ -52,11 +52,11 @@ public class DataManager implements GeoQueryEventListener {
         return INSTANCE;
     }
 
-    public Firebase getDbRef() {
+    Firebase getDbRef() {
         return dbRef;
     }
 
-    public void loginOrRegister(final String eMail, final String  password, final LoginActivity.ILoginCallbacks cb) {
+    void loginOrRegister(final String eMail, final String  password, final ILoginCallbacks cb) {
         dbRef.authWithPassword(eMail, password, new Firebase.AuthResultHandler() {
             @Override
             public void onAuthenticated(AuthData authData) {
@@ -91,7 +91,7 @@ public class DataManager implements GeoQueryEventListener {
         });
     }
 
-    public void getUser() {
+    void getUser() {
         Firebase userRef = dbRef.child("users").child(uid);
 
         userRef.addValueEventListener(new ValueEventListener() {
@@ -116,7 +116,7 @@ public class DataManager implements GeoQueryEventListener {
 
     }
 
-    public void getUser(final String _uid, final IUserCallbacks cb) {
+    void getUser(final String _uid, final IUserCallbacks cb) {
         Firebase userRef = dbRef.child("users").child(_uid);
 
         // Attach an listener to read the data at our posts reference
@@ -142,7 +142,7 @@ public class DataManager implements GeoQueryEventListener {
     }
 
 
-    public void checkName(final CharactersSelectionActivity.INameCheckCallbacks cb, String name) {
+    void checkName(final CharactersSelectionActivity.INameCheckCallbacks cb, String name) {
         Firebase ref = dbRef.child("usernames").child(name.toLowerCase());
         // Hacer la consulta ignorecase
 
@@ -163,7 +163,7 @@ public class DataManager implements GeoQueryEventListener {
         });
     }
 
-    public void storeUsername(String name, final CharactersSelectionActivity.INameStoringCallbacks cb) {
+    void storeUsername(String name, final CharactersSelectionActivity.INameStoringCallbacks cb) {
         Firebase ref = dbRef.child("usernames");
         ref.push().setValue(name, new Firebase.CompletionListener() {
             @Override
@@ -179,7 +179,7 @@ public class DataManager implements GeoQueryEventListener {
         });
     }
 
-    public void saveUser(User user, final CharactersSelectionActivity.IUserInitialStoreCallbacks cb) {
+    void saveUser(User user, final CharactersSelectionActivity.IUserInitialStoreCallbacks cb) {
         Firebase ref = dbRef.child("users").child(user.getUid());
         ref.setValue(user, new Firebase.CompletionListener() {
             @Override
@@ -195,15 +195,10 @@ public class DataManager implements GeoQueryEventListener {
         });
     }
 
-    public void saveUserTransaction() {
-
-    }
-
-
     /*
         rad is actual range radius in kilometers
      */
-    public void queryLocations(final Location l, final double rad) {
+    void queryLocations(final Location l, final double rad) {
         Log.d(TAG, "QueryLocations");
         if(uid == null)
             return;
@@ -232,7 +227,7 @@ public class DataManager implements GeoQueryEventListener {
         geoQuery.removeAllListeners();
     }
 
-    public String getUid() {
+    String getUid() {
         return uid;
     }
 

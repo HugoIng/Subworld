@@ -1,8 +1,5 @@
 package com.deepred.subworld.views;
 
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.ToneGenerator;
@@ -19,13 +16,12 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.deepred.subworld.engine.DataManager;
 import com.deepred.subworld.ICommon;
-import com.deepred.subworld.utils.IUserCallbacks;
-import com.deepred.subworld.utils.MyUserManager;
 import com.deepred.subworld.R;
 import com.deepred.subworld.model.Treasure;
 import com.deepred.subworld.model.User;
+import com.deepred.subworld.utils.IUserCallbacks;
+import com.deepred.subworld.utils.MyUserManager;
 
 /**
  *
@@ -100,7 +96,7 @@ public class CharactersSelectionActivity extends AppCompatActivity implements IU
                 if (chr_selected != ICommon.CHRS_NOT_SET && !name.isEmpty()) {
                     butt.setEnabled(false);
                     //Comprobar que el nombre no esta en uso en la BBDD
-                    DataManager.getInstance().checkName(new INameCheckCallbacks() {
+                    /*DataManager.getInstance().checkName(new INameCheckCallbacks() {
                         @Override
                         public void onValidUsername() {
                             DataManager.getInstance().storeUsername(name, new INameStoringCallbacks() {
@@ -123,7 +119,7 @@ public class CharactersSelectionActivity extends AppCompatActivity implements IU
 
                                             @Override
                                             public void onUserCreationSuccess() {
-                                                Intent intent = new Intent(getApplicationContext(), MapboxActivity.class);
+                                                Intent intent = new Intent(getApplicationContext(), MapActivityImpl.class);
                                                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                                                 CharactersSelectionActivity.this.startActivity(intent);
                                             }
@@ -143,7 +139,16 @@ public class CharactersSelectionActivity extends AppCompatActivity implements IU
                             txt.requestFocus();
                             applyAnim(select2);
                         }
-                    }, name);
+                    }, name);*/
+
+
+
+
+
+
+
+
+
                 } else {
                     if (chr_selected == ICommon.CHRS_NOT_SET) {
                         Toast.makeText(getApplicationContext(), "Seleccione un personaje", Toast.LENGTH_LONG).show();

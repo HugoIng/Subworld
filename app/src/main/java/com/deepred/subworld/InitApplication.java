@@ -1,26 +1,27 @@
 package com.deepred.subworld;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.deepred.subworld.engine.DataManager;
+import com.deepred.subworld.engine.GameService;
 import com.deepred.subworld.model.User;
 import com.deepred.subworld.notifications.BaseNotificationBuilder;
-import com.deepred.subworld.service.ServiceBoot;
+import com.deepred.subworld.service.LocationService;
 import com.deepred.subworld.utils.IUserCallbacks;
 import com.deepred.subworld.utils.MyUserManager;
 import com.deepred.subworld.views.CharactersSelectionActivity;
 import com.deepred.subworld.views.LoginActivity;
-import com.deepred.subworld.views.MapboxActivity;
+import com.deepred.subworld.views.MapActivityImpl;
 
 /**
  * Created by aplicaty on 25/02/16.
  */
 public class InitApplication extends Activity implements IUserCallbacks {
+    private static final String TAG = "InitAplication";
     private SubworldApplication app;
     private Bundle extraFromNotification = null;
     private SharedPreferences prefs;
@@ -31,10 +32,10 @@ public class InitApplication extends Activity implements IUserCallbacks {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         app = (SubworldApplication)getApplication();
-        ApplicationHolder.setAplicatyApplication((SubworldApplication) app);
+        ApplicationHolder.setApp(app);
 
-        if (app.getServiceBoot() == null) {
-            startService(new Intent(InitApplication.this, ServiceBoot.class));
+        if (app.getLocationService() == null) {
+            startService(new Intent(InitApplication.this, LocationService.class));
         } else {
             Log.d("InitApplication", "Service already started");
         }
@@ -48,12 +49,9 @@ public class InitApplication extends Activity implements IUserCallbacks {
             }
         }
 
-        DataManager.getInstance();
-
         // Restore preferences
-        prefs = getSharedPreferences(ICommon.PREFS_NAME, Context.MODE_PRIVATE);
-        email = prefs.getString(ICommon.EMAIL, null);
-        password = prefs.getString(ICommon.PASSWORD, null);
+        email = app.getPreference(ICommon.EMAIL);
+        password = app.getPreference(ICommon.PASSWORD);
 
         // Look for credentials
         if (email != null && password != null) {
@@ -62,24 +60,41 @@ public class InitApplication extends Activity implements IUserCallbacks {
 
             MyUserManager.getInstance().register4UserNotifications(this);
 
-            // Login with credentials
-            DataManager.getInstance().loginOrRegister(email, password, new LoginActivity.ILoginCallbacks() {
-
+            /*Thread thread = new Thread() {
                 @Override
-                public void onLoginOk(boolean wait4User) {
-                    ServiceBoot serv = ApplicationHolder.getApp().getServiceBoot();
-                    if(serv != null)
-                        serv.onBBDDConnected();
-                    else
-                        ServiceBoot.setBBDDConnected();
-                    DataManager.getInstance().getUser();
-                }
+                public void run() {
+                    Log.v(TAG, "Executing login on firebase");
+                    // Login with credentials
+                    DataManager.getInstance().loginOrRegister(email, password, new LoginActivity.ILoginCallbacks() {
 
-                @Override
-                public void onLoginError() {
-                    launchLogin();
+                        @Override
+                        public void onLoginOk(boolean wait4User) {
+                            Log.v(TAG, "Executing login on firebase");
+                            LocationService serv = ApplicationHolder.getApp().getLocationService();
+                            if(serv != null)
+                                serv.onBBDDConnected();
+                            else
+                                LocationService.setBBDDConnected();
+                            DataManager.getInstance().getUser();
+                        }
+
+                        @Override
+                        public void onLoginError() {
+                            launchLogin();
+                        }
+                    });
                 }
-            });
+            };
+            thread.start();*/
+
+            // Request login or register with the background service
+            Intent mServiceIntent = new Intent(this, GameService.class);
+            mServiceIntent.setData(Uri.parse(ICommon.LOGIN_REGISTER));
+            mServiceIntent.putExtra(ICommon.EMAIL, email);
+            mServiceIntent.putExtra(ICommon.PASSWORD, password);
+            mServiceIntent.putExtra(ICommon.SCREEN_CONTEXT, getLocalClassName());
+            startService(mServiceIntent); // Starts the IntentService
+
         } else {
             launchLogin();
         }
@@ -112,7 +127,7 @@ public class InitApplication extends Activity implements IUserCallbacks {
         }
         //else entrar
         else {
-            Intent intent = new Intent(getApplicationContext(), MapboxActivity.class);
+            Intent intent = new Intent(getApplicationContext(), MapActivityImpl.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             this.startActivity(intent);
         }

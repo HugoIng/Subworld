@@ -21,7 +21,7 @@ public class MenuLateralFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-       /* app = (AplicatyApplication) getActivity().getApplication();
+        /* app = (AplicatyApplication) getActivity().getApplication();
         workingUser =  LoggedUserAdapter.getInstance().getTheOnlyOne();
         filtrosFAS = new FiltrosFAS();
         btLogo = (CircleImageView) getActivity().findViewById(R.id.imPerfil);
@@ -119,7 +119,7 @@ public class MenuLateralFragment extends Fragment {
                         startActivity(new Intent(getActivity().getApplicationContext(), InitApplication.class));
                         getActivity().finish();
 
-                        ServiceBoot serviceBoot = app.getServiceBoot();
+                        LocationService serviceBoot = app.getLocationService();
                         if(serviceBoot != null) {
                             serviceBoot.disconnect();
                         }

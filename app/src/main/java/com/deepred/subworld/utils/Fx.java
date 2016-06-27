@@ -6,7 +6,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
 import com.deepred.subworld.R;
-import com.deepred.subworld.views.MyAdapter;
+import com.deepred.subworld.views.MenuAdapter;
 
 /**
  * Created by Hugo on 6/17/2016.
@@ -32,7 +32,7 @@ public class Fx {
         }
     }
 
-    public static void slide_up(Context ctx, View v, final MyAdapter.OnAnimationEndCompleteListener cb) {
+    public static void slide_up(Context ctx, View v, final MenuAdapter.OnAnimationEndCompleteListener cb) {
 
         Animation a = AnimationUtils.loadAnimation(ctx, R.anim.slide_up);
         if (a != null) {

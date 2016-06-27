@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
@@ -15,43 +16,40 @@ import android.util.Log;
 
 import com.deepred.subworld.ICommon;
 import com.deepred.subworld.R;
-import com.deepred.subworld.engine.GameManager;
+import com.deepred.subworld.engine.GameService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResult;
 
 /**
  * Created by aplicaty on 22/06/16.
  */
-public class GoogleLocationServiceImpl implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
+public class GoogleLocationServiceImpl extends LocationService implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
 
     private final static String TAG = "GoogleLocationSrvImpl";
 
     // Google Location API
     private GoogleApiClient mGoogleApiClient;
 
-    private ServiceBoot srv;
-    private GameManager gm;
+    //private LocationService srv;
+    private GameService gm;
 
     private boolean connected;
     private boolean started;
     private boolean gpsMode;
+    private Location lastLocation;
 
-    public GoogleLocationServiceImpl(ServiceBoot service) {
-
-        srv = service;
+    @Override
+    public void onCreate() {
+        super.onCreate();
         started = false;
         connected = false;
         gpsMode = false;
-        gm = GameManager.getInstance();
 
         // Create an instance of GoogleAPIClient.
         if (mGoogleApiClient == null) {
-            mGoogleApiClient = new GoogleApiClient.Builder(srv)
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .addApi(LocationServices.API)
@@ -59,26 +57,41 @@ public class GoogleLocationServiceImpl implements GoogleApiClient.ConnectionCall
         }
         mGoogleApiClient.connect();
 
-        gm.setLastLocationIfNull(getLastLocation());
-
+        lastLocation = getLastLocation();
+        if (lastLocation != null)
+            sendLastLocation();
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        disconnect();
+    }
+
 
     public void disconnect() {
         stopLocationUpdates();
         mGoogleApiClient.disconnect();
     }
 
+
     public void switchProvider(boolean useGps) {
+        Log.d(TAG, "SwitchProvider: use GPS:" + useGps);
+        requiredGpsMode = useGps;
+
+        if (!isConnectedBBDD)
+            return;
+
         if(!connected)
             return;
 
-        if (srv.isRequiredGpsMode() == gpsMode && started)
+        if (isRequiredGpsMode() == gpsMode && started)
             return;
 
         stopLocationUpdates();
 
         // Si aun no hemos obtenido una localizacion, mantenemos low precission
-        if (useGps && gm.getLastLocationDate() != null) {
+        if (useGps && lastLocation != null && lastLocation.getTime() != 0) {
             requestLocationUpdates(true);
         } else {
             requestLocationUpdates(false);
@@ -91,14 +104,14 @@ public class GoogleLocationServiceImpl implements GoogleApiClient.ConnectionCall
         return started;
     }
 
-    public boolean isGpsMode() {
+    /*public boolean isGpsMode() {
         return gpsMode;
-    }
+    }*/
 
     //Android Location methods
     private void requestLocationUpdates(boolean useGps) {
-        if (ActivityCompat.checkSelfPermission(srv, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(srv, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -106,7 +119,7 @@ public class GoogleLocationServiceImpl implements GoogleApiClient.ConnectionCall
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
-            Log.e(TAG, srv.getString(R.string.no_permissions));
+            Log.e(TAG, getString(R.string.no_permissions));
             return;
         }
 
@@ -124,56 +137,17 @@ public class GoogleLocationServiceImpl implements GoogleApiClient.ConnectionCall
         }
 
         mLocationRequest.setPriority(priority);
-
         mLocationRequest.setSmallestDisplacement(ICommon.LOCATION_MIN_DISTANCE_CHANGE_FOR_UPDATES);
-
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
-                .addLocationRequest(mLocationRequest);
-
-        final PendingResult<LocationSettingsResult> result = LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient, builder.build());
-        /*result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
-            @Override
-            public void onResult(LocationSettingsResult locationSettingsResult) {
-                final Status status = locationSettingsResult.getStatus();
-                final LocationSettingsStates = locationSettingsResult.getLocationSettingsStates();
-                switch (status.getStatusCode()) {
-                    case LocationSettingsStatusCodes.SUCCESS:
-                        // All location settings are satisfied. The client can
-                        // initialize location requests here.
-                        //...
-                        break;
-                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                        // Location settings are not satisfied, but this can be fixed
-                        // by showing the user a dialog.
-                        try {
-                            // Show the dialog by calling startResolutionForResult(),
-                            // and check the result in onActivityResult().
-                            status.startResolutionForResult(
-                                    OuterClass.this,
-                                    REQUEST_CHECK_SETTINGS);
-                        } catch (IntentSender.SendIntentException e) {
-                            // Ignore the error.
-                        }
-                        break;
-                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                        // Location settings are not satisfied. However, we have no way
-                        // to fix the settings so we won't show the dialog.
-                        //...
-                        break;
-                }
-            }
-        });*/
-
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
     }
 
-    public void stopLocationUpdates() {
+    private void stopLocationUpdates() {
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
     }
 
-    public Location getLastLocation() {
-        if (ActivityCompat.checkSelfPermission(srv, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(srv, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+    private Location getLastLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -191,7 +165,7 @@ public class GoogleLocationServiceImpl implements GoogleApiClient.ConnectionCall
     @Override
     public void onConnected(Bundle bundle) {
         connected = true;
-        srv.onLocImplConnected();
+        onLocImplConnected();
     }
 
     @Override
@@ -201,32 +175,40 @@ public class GoogleLocationServiceImpl implements GoogleApiClient.ConnectionCall
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Log.e(TAG, srv.getString(R.string.loc_apis_conn_err));
+        Log.e(TAG, getString(R.string.loc_apis_conn_err));
     }
 
     @Override
-    public void onLocationChanged(Location loc) {
-        gm.locationChange(loc);
+    public void onLocationChanged(final Location loc) {
 
-        if(srv.isRequiredGpsMode() != gpsMode) {
-            switchProvider(srv.isRequiredGpsMode());
-        }
+        lastLocation = loc;
+
+        sendLastLocation();
 
         // After 15 seconds, if no location is retrieved, go back to LOW_PRECISSION mode.
         Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             public void run() {
-                if(gm.getLastLocation().getTime() > System.currentTimeMillis() - ICommon.DISABLE_GPS_IF_NO_LOCATIONS_AFTER)
+                if (loc.getTime() > System.currentTimeMillis() - ICommon.DISABLE_GPS_IF_NO_LOCATIONS_AFTER)
                     switchProvider(false);
             }
         }, ICommon.DISABLE_GPS_IF_NO_LOCATIONS_AFTER);
     }
 
+
+    private void sendLastLocation() {
+        Intent mServiceIntent = new Intent(this, GameService.class);
+        mServiceIntent.setData(Uri.parse(ICommon.NEW_LOCATION_FROM_SRV));
+        mServiceIntent.putExtra(ICommon.NEW_LOCATION_FROM_SRV, lastLocation);
+        startService(mServiceIntent); // Starts the IntentService
+    }
+
+
     /**
      * Function to show settings alert dialog
      * */
     public void showSettingsAlert(){
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(srv.getApplicationContext());
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(getApplicationContext());
 
         // Setting Dialog Title
         alertDialog.setTitle("GPS is settings");
@@ -241,7 +223,7 @@ public class GoogleLocationServiceImpl implements GoogleApiClient.ConnectionCall
         alertDialog.setPositiveButton("Settings", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog,int which) {
                 Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                srv.getApplicationContext().startActivity(intent);
+                getApplicationContext().startActivity(intent);
             }
         });
 

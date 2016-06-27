@@ -1,11 +1,12 @@
 package com.deepred.subworld.engine;
 
+import android.content.Intent;
 import android.location.Location;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.deepred.subworld.ApplicationHolder;
 import com.deepred.subworld.ICommon;
-import com.deepred.subworld.service.ServiceBoot;
+import com.deepred.subworld.model.Rival;
 import com.firebase.geofire.GeoLocation;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 
@@ -19,29 +20,18 @@ import java.util.List;
  */
 public class UsersViewRangeManager {
 
-    public interface IVisibilityCompletionListener {
-        void onCompleted(boolean isVisible);
-    }
-
+    private final static String TAG = "RangeManager";
     private static Object lock = new Object();
     private static volatile UsersViewRangeManager instance = null;
-    //private GameManager gm;
-
-    //private HashMap<String, GeoLocation> users;
-    private UsersMap users;
-    private String myUid;
+    private GameService gm;
+    private RivalsMap rivals;
     private GeoLocation myLocation;
-
-    private final static String TAG = "RangeManager";
     private double actualRange = 200; // Range in meters
     private float zoom;
     private boolean applyRangeReduction;
     private List<String> previousUsersToBeRemoved;
-
     private UsersViewRangeManager() {
-        //users = new HashMap<String, GeoLocation>();
-        users = new UsersMap();
-        //gm = GameManager.getInstance();
+        rivals = new RivalsMap();
         previousUsersToBeRemoved = new ArrayList<String>();
         applyRangeReduction = false;
         zoom = rangeToZoomLevel();
@@ -58,6 +48,10 @@ public class UsersViewRangeManager {
             }
         }
         return localInstance;
+    }
+
+    public void setServiceContext(GameService ctx) {
+        gm = ctx;
     }
 
     public float getZoom() { return zoom; }
@@ -82,8 +76,8 @@ public class UsersViewRangeManager {
             applyRangeReduction = false;
         }
 
-        // Si no hay suficientes puntos
-        if(users.countVisibleUsersInRange() < ICommon.MIN_USERS_IN_RANGE) {
+        // When there are not enough rivals
+        if(rivals.countVisibleUsersInRange() < ICommon.MIN_USERS_IN_RANGE) {
             // Widen the range area
             if(actualRange < ICommon.MAX_RANGE) {
                 Log.d(TAG, "Performing range checks: widen the area");
@@ -93,19 +87,25 @@ public class UsersViewRangeManager {
                     actualRange += ICommon.RANGE_VARIATION;
                 }
             } else {
-                // Cambiar de GPS a Red
+                // Switch from GPS a Network
                 Log.d(TAG, "Performing range checks: switch to low precission (gps off)");
-                ServiceBoot serv = ApplicationHolder.getApp().getServiceBoot();
-                if(serv != null)
+                //LocationService serv = ApplicationHolder.getApp().getLocationService();
+                /*if(serv != null)
                     serv.switchProvider(false);
                 else
-                    ServiceBoot.setProvider(false);
-                GameManager.getInstance().changeBackgroundState(true);
+                    LocationService.setProvider(false);*/
+                Intent localIntent = new Intent(ICommon.BACKGROUND_STATUS)
+                                // Puts the status into the Intent
+                                .putExtra(ICommon.BACKGROUND_STATUS, false);
+                // Broadcasts the Intent to receivers in this app.
+                LocalBroadcastManager.getInstance(gm).sendBroadcast(localIntent);
+
+                gm.changeBackgroundState(true);
             }
         }
 
-        if(users.countVisibleUsersInRange() > ICommon.MAX_USERS_IN_RANGE) {
-            // Reduce the area and focus onto less users
+        if(rivals.countVisibleUsersInRange() > ICommon.MAX_USERS_IN_RANGE) {
+            // Reduce the area and focus onto less rivals
             Log.d(TAG, "Performing range checks: reduce the area");
             if(actualRange > ICommon.RANGE_VARIATION) {
                 actualRange -= ICommon.RANGE_VARIATION;
@@ -119,10 +119,14 @@ public class UsersViewRangeManager {
         if(actualRange != previousRange) {
             applyRangeReduction = (actualRange < previousRange);
             if(applyRangeReduction) {
-                // Make a copy of the users ids in actual map
-                previousUsersToBeRemoved.addAll(users.getKeys());
+                // Make a copy of the rivals ids in actual map
+                previousUsersToBeRemoved.addAll(rivals.getKeys());
             }
-            update(GameManager.getInstance().getLastLocation());
+
+            Location loc = new Location("?");
+            loc.setLatitude(myLocation.latitude);
+            loc.setLongitude(myLocation.longitude);
+            update(loc);
             // Adjust zoom
             setZoom();
         }
@@ -132,13 +136,12 @@ public class UsersViewRangeManager {
         Log.d(TAG, "Add " + uid + " (isMe:" + isMe + ")");
         if(isMe) {
             // actualiza
-            myUid = uid;
             myLocation = g;
 
             // Comprueba la visibilidad de los otros usuarios al cambiar mi posicion
             refreshUsersVisibility();
 
-            GameManager.getInstance().updateLocation(uid, new LatLng(g.latitude, g.longitude), true);
+            gm.updateMyLocation();
         } else {
             if(applyRangeReduction) {
                 // if this uid was on the previous range and will still be on the map
@@ -151,20 +154,20 @@ public class UsersViewRangeManager {
             }
 
             // Check visibilidad
-            GameManager.getInstance().checkVisibility(uid, new LatLng(g.latitude, g.longitude), new IVisibilityCompletionListener() {
+            gm.checkVisibility(uid, new LatLng(g.latitude, g.longitude), new IVisibilityCompletionListener() {
                 @Override
                 public void onCompleted(boolean isVisible) {
-                    boolean wasVisibleBefore = users.isVisible(uid);
+                    boolean wasVisibleBefore = rivals.isVisible(uid);
 
-                    // Actualiza users
-                    users.put(uid, g, isVisible);
+                    // Actualiza rivals
+                    rivals.put(uid, g, isVisible);
 
                     if (isVisible) {
                         // Lo pinto
-                        GameManager.getInstance().updateLocation(uid, new LatLng(g.latitude, g.longitude), false);
+                        gm.updateRivalLocation(uid, new LatLng(g.latitude, g.longitude));
                     } else if (wasVisibleBefore) {
                         // Ya no se ve, lo borro.
-                        GameManager.getInstance().removeLocation(uid);
+                        gm.removeRivalLocation(uid);
                     }
                 }
             });
@@ -172,15 +175,15 @@ public class UsersViewRangeManager {
     }
 
     public void remove(String uid) {
-        UsersMap.UserInRange u = users.remove(uid);
+        Rival u = rivals.remove(uid);
         if(u.isVisible()) {
-            GameManager.getInstance().removeLocation(uid);
+            gm.removeRivalLocation(uid);
         }
     }
 
     public void setZoom() {
         zoom = rangeToZoomLevel();
-        GameManager.getInstance().setZoom(zoom);
+        gm.setZoom(zoom);
     }
 
     private double zoomLevelToRadius(double zoomLevel) {
@@ -195,18 +198,18 @@ public class UsersViewRangeManager {
 
     private void refreshUsersVisibility() {
         Log.d(TAG, "refreshUsersVisibility");
-        for(String uid:users.getKeys()) {
+        for(String uid: rivals.getKeys()) {
             checkUserVisibility(uid);
         }
     }
 
     private void checkUserVisibility(final String uid) {
         Log.d(TAG, "checkUserVisibility: " + uid);
-        final UsersMap.UserInRange u = users.get(uid);
+        final Rival u = rivals.get(uid);
         GeoLocation g = u.getLocation();
         final LatLng loc = new LatLng(g.latitude, g.longitude);
 
-        GameManager.getInstance().checkVisibility(uid, loc, new IVisibilityCompletionListener() {
+        gm.checkVisibility(uid, loc, new IVisibilityCompletionListener() {
 
             @Override
             public void onCompleted(boolean isVisible) {
@@ -216,13 +219,17 @@ public class UsersViewRangeManager {
                 if (isVisible != wasVisibleBefore) {
                     if (isVisible) {
                         // Lo pinto
-                        GameManager.getInstance().updateLocation(uid, loc, false);
+                        gm.updateMyLocation();
                     } else if (wasVisibleBefore) {
                         // Ya no se ve, lo borro.
-                        GameManager.getInstance().removeLocation(uid);
+                        gm.removeRivalLocation(uid);
                     }
                 }
             }
         });
+    }
+
+    public interface IVisibilityCompletionListener {
+        void onCompleted(boolean isVisible);
     }
 }

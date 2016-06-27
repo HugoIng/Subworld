@@ -5,7 +5,8 @@ import android.content.SharedPreferences;
 import android.support.multidex.MultiDexApplication;
 import android.util.Log;
 
-import com.deepred.subworld.service.ServiceBoot;
+import com.deepred.subworld.service.LocationService;
+import com.deepred.subworld.service.StatusReceiver;
 import com.deepred.subworld.utils.OnBackPressed;
 
 import java.util.Properties;
@@ -14,24 +15,47 @@ import java.util.Properties;
  * Created by aplicaty on 25/02/16.
  */
 public class SubworldApplication extends MultiDexApplication {
-
+    private static final String TAG = "SubworldApplication";
     private SharedPreferences preferences;
 
-    private ServiceBoot serviceBoot;
-    private ApplicationLifecycleHandler handler;
+    private LocationService locationService;
+    //private StatusReceiver handler;
     private Properties properties = new Properties();
     private OnBackPressed onBackPressed;
 
 
     public SubworldApplication() {
         super();
-        handler = ApplicationLifecycleHandler.getInstance();
+
+        /*handler = new StatusReceiver();
+
+        // Register receiver that handles screen on and screen off logic and background state
+        IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
+        filter.addAction(Intent.ACTION_SCREEN_OFF);
+        filter.addAction(ICommon.BACKGROUND_STATUS);
+        filter.addAction(ICommon.BBDD_CONNECTED);
+        registerReceiver(handler, filter);
         registerActivityLifecycleCallbacks(handler);
-        registerComponentCallbacks(handler);
+        registerComponentCallbacks(handler);*/
+
+        /*if (locationService == null) {
+            startService(new Intent(this, LocationService.class));
+        } else {
+            Log.d(TAG, "Service already started");
+
+        }*/
+    }
+
+    @Override
+    public void onTerminate() {
+        super.onTerminate();
+        /*unregisterActivityLifecycleCallbacks(handler);
+        unregisterComponentCallbacks(handler);
+        unregisterReceiver(handler);*/
     }
 
     public SharedPreferences getPreferences() {
-        return getSharedPreferences("preferences", Context.MODE_PRIVATE);
+        return getSharedPreferences(ICommon.PREFS_NAME, Context.MODE_PRIVATE);
     }
 
     public void savePreference(String key, String value) {
@@ -41,15 +65,18 @@ public class SubworldApplication extends MultiDexApplication {
     }
 
     public String getPreference(String key) {
-        return getPreferences().getString(key, "0");
+        return getPreferences().getString(key, null);
     }
 
-    public ServiceBoot getServiceBoot() {
-        return serviceBoot;
+    public LocationService getLocationService() {
+        return locationService;
     }
 
-    public void setServiceBoot(ServiceBoot serviceBoot) {
-        this.serviceBoot = serviceBoot;
+    public void setLocationService(LocationService locationService, StatusReceiver handler) {
+        this.locationService = locationService;
+        handler.setService(locationService);
+        registerActivityLifecycleCallbacks(handler);
+        registerComponentCallbacks(handler);
     }
 
 

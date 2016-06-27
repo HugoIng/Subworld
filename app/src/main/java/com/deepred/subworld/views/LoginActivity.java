@@ -4,7 +4,6 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.LoaderManager;
-import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
@@ -14,11 +13,13 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.ResultReceiver;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -31,12 +32,11 @@ import android.widget.TextView;
 
 import com.deepred.subworld.ApplicationHolder;
 import com.deepred.subworld.ICommon;
-import com.deepred.subworld.service.ServiceBoot;
-import com.deepred.subworld.utils.MyUserManager;
 import com.deepred.subworld.R;
-import com.deepred.subworld.engine.DataManager;
+import com.deepred.subworld.engine.GameService;
 import com.deepred.subworld.model.User;
 import com.deepred.subworld.utils.IUserCallbacks;
+import com.deepred.subworld.utils.MyUserManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +47,7 @@ import static android.Manifest.permission.READ_CONTACTS;
  *
  */
 public class LoginActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, IUserCallbacks {
+    public static final String TAG = "LoginActivity";
 
     /**
      * Id to identity READ_CONTACTS permission request.
@@ -65,7 +66,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderManager.Lo
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        prefs = getSharedPreferences(ICommon.PREFS_NAME, Context.MODE_PRIVATE);
+        prefs = ApplicationHolder.getApp().getPreferences();
 
         MyUserManager.getInstance().register4UserNotifications(this);
 
@@ -148,16 +149,16 @@ public class LoginActivity extends AppCompatActivity implements LoaderManager.Lo
         } else {
             // Show a progress spinner, and kick off a background task to perform the user login attempt.
             showProgress(true);
-            DataManager.getInstance().loginOrRegister(email, password, new ILoginCallbacks() {
+            /*DataManager.getInstance().loginOrRegister(email, password, new ILoginCallbacks() {
                 @Override
                 public void onLoginOk(boolean wait4User) {
                     showProgress(false);
 
-                    ServiceBoot serv = ApplicationHolder.getApp().getServiceBoot();
+                    LocationService serv = ApplicationHolder.getApp().getLocationService();
                     if(serv != null)
                         serv.onBBDDConnected();
                     else
-                        ServiceBoot.setBBDDConnected();
+                        LocationService.setBBDDConnected();
 
                     DataManager.getInstance().getUser();
 
@@ -175,7 +176,37 @@ public class LoginActivity extends AppCompatActivity implements LoaderManager.Lo
                     mPasswordView.setError(getString(R.string.error_incorrect_password));
                     mPasswordView.requestFocus();
                 }
+            });*/
+
+            //Store login y password en preferencias
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putString(ICommon.EMAIL, email);
+            editor.putString(ICommon.PASSWORD, password);
+            // Commit the edits!
+            editor.commit();
+
+            // Request background login with the service
+            Intent mServiceIntent = new Intent(this, GameService.class);
+            mServiceIntent.setData(Uri.parse(ICommon.LOGIN_REGISTER));
+            mServiceIntent.putExtra(ICommon.EMAIL, email);
+            mServiceIntent.putExtra(ICommon.PASSWORD, password);
+            mServiceIntent.putExtra(ICommon.SCREEN_CONTEXT, getLocalClassName());
+
+            mServiceIntent.putExtra(ICommon.RESULT_RECEIVER, new ResultReceiver(null) {
+                @Override
+                protected void onReceiveResult(int resultCode, Bundle resultData) {
+                    super.onReceiveResult(resultCode, resultData);
+                    if (resultCode == RESULT_OK) {
+                        Log.d(TAG, "Login OK!");
+                    } else {
+                        showProgress(false);
+                        mPasswordView.setError(getString(R.string.error_incorrect_password));
+                        mPasswordView.requestFocus();
+                    }
+                }
             });
+
+            startService(mServiceIntent); // Starts the IntentService
         }
     }
 
@@ -199,7 +230,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderManager.Lo
         }
         //else entrar
         else {
-            Intent intent = new Intent(getApplicationContext(), MapboxActivity.class);
+            Intent intent = new Intent(getApplicationContext(), MapActivityImpl.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             this.startActivity(intent);
         }
@@ -341,11 +372,11 @@ public class LoginActivity extends AppCompatActivity implements LoaderManager.Lo
         mEmailView.setAdapter(adapter);
     }
 
-    public interface ILoginCallbacks {
+    /*public interface ILoginCallbacks {
         public void onLoginOk(boolean wait4User);
 
         public void onLoginError();
-    }
+    }*/
 
 
     private interface ProfileQuery {
