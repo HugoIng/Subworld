@@ -10,6 +10,7 @@ public class ICommon {
 
     public final static String EMAIL = "email";
     public final static String PASSWORD = "password";
+    public final static String NAME = "name";
     public final static String LAST_LOCATION_LATITUDE = "my_last_location_latitude";
     public final static String LAST_LOCATION_LONGITUDE = "my_last_location_latitude";
     public final static String LAST_LOCATION_PROVIDER = "my_last_location_provider";
@@ -22,6 +23,7 @@ public class ICommon {
     public static final String GEO_FIRE_REF = "https://subworld.firebaseio.com/_geofire";
 
     // Characters
+    public final static String CHR_TYPE = "chr_type";
     public final static int CHRS_NOT_SET = -1;
     public final static int CHRS_ARCHEOLOGIST = 0;
     public final static int CHRS_FORT_TELLER = 1;
@@ -141,8 +143,10 @@ public class ICommon {
     public static final String MAP_ACTIVITY_PAUSED = "map_activity_paused";
     public static final String SET_BACKGROUND_STATUS = "get_background_status";
     public static final String LOGIN_REGISTER = "login_register";
+    public static final String CHECK_NAME = "check_name";
     public static final String SCREEN_CONTEXT = "screen_context";
     public static final String RESULT_RECEIVER = "result";
+    public static final String MOTIVE = "motive";
     // Local broadcasts done by GameService
     public static final String MY_LOCATION = "my_location";
     public static final String RIVAL_LOCATION = "rival_location";

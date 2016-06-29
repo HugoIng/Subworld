@@ -35,7 +35,7 @@ import com.deepred.subworld.ICommon;
 import com.deepred.subworld.R;
 import com.deepred.subworld.engine.GameService;
 import com.deepred.subworld.model.User;
-import com.deepred.subworld.utils.IUserCallbacks;
+import com.deepred.subworld.utils.ICallbacks;
 import com.deepred.subworld.utils.MyUserManager;
 
 import java.util.ArrayList;
@@ -46,7 +46,7 @@ import static android.Manifest.permission.READ_CONTACTS;
 /**
  *
  */
-public class LoginActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, IUserCallbacks {
+public class LoginActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, ICallbacks.IUserCallbacks {
     public static final String TAG = "LoginActivity";
 
     /**

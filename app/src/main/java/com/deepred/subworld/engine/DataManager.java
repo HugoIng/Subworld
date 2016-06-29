@@ -6,10 +6,8 @@ import android.util.Log;
 import com.deepred.subworld.ApplicationHolder;
 import com.deepred.subworld.ICommon;
 import com.deepred.subworld.model.User;
-import com.deepred.subworld.utils.ILoginCallbacks;
-import com.deepred.subworld.utils.IUserCallbacks;
+import com.deepred.subworld.utils.ICallbacks;
 import com.deepred.subworld.utils.MyUserManager;
-import com.deepred.subworld.views.CharactersSelectionActivity;
 import com.firebase.client.AuthData;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
@@ -56,7 +54,7 @@ class DataManager implements GeoQueryEventListener {
         return dbRef;
     }
 
-    void loginOrRegister(final String eMail, final String  password, final ILoginCallbacks cb) {
+    void loginOrRegister(final String eMail, final String password, final ICallbacks.ILoginCallbacks cb) {
         dbRef.authWithPassword(eMail, password, new Firebase.AuthResultHandler() {
             @Override
             public void onAuthenticated(AuthData authData) {
@@ -116,7 +114,7 @@ class DataManager implements GeoQueryEventListener {
 
     }
 
-    void getUser(final String _uid, final IUserCallbacks cb) {
+    void getUser(final String _uid, final ICallbacks.IUserCallbacks cb) {
         Firebase userRef = dbRef.child("users").child(_uid);
 
         // Attach an listener to read the data at our posts reference
@@ -142,7 +140,7 @@ class DataManager implements GeoQueryEventListener {
     }
 
 
-    void checkName(final CharactersSelectionActivity.INameCheckCallbacks cb, String name) {
+    void checkName(String name, final ICallbacks.INameCheckCallbacks cb) {
         Firebase ref = dbRef.child("usernames").child(name.toLowerCase());
         // Hacer la consulta ignorecase
 
@@ -163,7 +161,7 @@ class DataManager implements GeoQueryEventListener {
         });
     }
 
-    void storeUsername(String name, final CharactersSelectionActivity.INameStoringCallbacks cb) {
+    void storeUsername(String name, final ICallbacks.INameStoringCallbacks cb) {
         Firebase ref = dbRef.child("usernames");
         ref.push().setValue(name, new Firebase.CompletionListener() {
             @Override
@@ -179,7 +177,7 @@ class DataManager implements GeoQueryEventListener {
         });
     }
 
-    void saveUser(User user, final CharactersSelectionActivity.IUserInitialStoreCallbacks cb) {
+    void saveUser(User user, final ICallbacks.IUserInitialStoreCallbacks cb) {
         Firebase ref = dbRef.child("users").child(user.getUid());
         ref.setValue(user, new Firebase.CompletionListener() {
             @Override

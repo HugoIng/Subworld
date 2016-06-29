@@ -1,9 +1,12 @@
 package com.deepred.subworld.views;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.ToneGenerator;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.ResultReceiver;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -18,15 +21,15 @@ import android.widget.Toast;
 
 import com.deepred.subworld.ICommon;
 import com.deepred.subworld.R;
-import com.deepred.subworld.model.Treasure;
+import com.deepred.subworld.engine.GameService;
 import com.deepred.subworld.model.User;
-import com.deepred.subworld.utils.IUserCallbacks;
+import com.deepred.subworld.utils.ICallbacks;
 import com.deepred.subworld.utils.MyUserManager;
 
 /**
  *
  */
-public class CharactersSelectionActivity extends AppCompatActivity implements IUserCallbacks {
+public class CharactersSelectionActivity extends AppCompatActivity implements ICallbacks.IUserCallbacks {
 
     int chr_selected = ICommon.CHRS_NOT_SET;
     String TAG = "CharacterSelectionActivity";
@@ -95,59 +98,31 @@ public class CharactersSelectionActivity extends AppCompatActivity implements IU
                 //Check chr selected and name
                 if (chr_selected != ICommon.CHRS_NOT_SET && !name.isEmpty()) {
                     butt.setEnabled(false);
+
                     //Comprobar que el nombre no esta en uso en la BBDD
-                    /*DataManager.getInstance().checkName(new INameCheckCallbacks() {
+                    // Request background login with the service
+                    Intent mServiceIntent = new Intent(CharactersSelectionActivity.this, GameService.class);
+                    mServiceIntent.setData(Uri.parse(ICommon.CHECK_NAME));
+                    mServiceIntent.putExtra(ICommon.NAME, name);
+                    mServiceIntent.putExtra(ICommon.CHR_TYPE, chr_selected);
+                    mServiceIntent.putExtra(ICommon.RESULT_RECEIVER, new ResultReceiver(null) {
                         @Override
-                        public void onValidUsername() {
-                            DataManager.getInstance().storeUsername(name, new INameStoringCallbacks() {
-                                @Override
-                                public void onStored(boolean ok) {
-                                    if (ok) {
-                                        User u = MyUserManager.getInstance().getUser();
-                                        String uid = DataManager.getInstance().getUid();
-                                        u.setUid(uid);
-                                        u.setName(name);
-                                        u.setChrType(chr_selected);
-                                        SharedPreferences prefs = getSharedPreferences(ICommon.PREFS_NAME, Context.MODE_PRIVATE);
-                                        u.setEmail(prefs.getString(ICommon.EMAIL, null));
-                                        addDefaultTreasure(u);
-                                        DataManager.getInstance().saveUser(u, new IUserInitialStoreCallbacks() {
-                                            @Override
-                                            public void onUserCreationError() {
-                                                Toast.makeText(getApplicationContext(), "No se ha podido guardar, intentelo mas tarde.", Toast.LENGTH_LONG).show();
-                                            }
-
-                                            @Override
-                                            public void onUserCreationSuccess() {
-                                                Intent intent = new Intent(getApplicationContext(), MapActivityImpl.class);
-                                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                                                CharactersSelectionActivity.this.startActivity(intent);
-                                            }
-                                        });
-                                    } else {
-                                        Toast.makeText(getApplicationContext(), "No se ha podido guardar, intentelo mas tarde.", Toast.LENGTH_LONG).show();
-                                    }
-                                }
-                            });
+                        protected void onReceiveResult(int resultCode, Bundle resultData) {
+                            super.onReceiveResult(resultCode, resultData);
+                            if (resultCode == RESULT_OK) {
+                                Intent intent = new Intent(getApplicationContext(), MapActivityImpl.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                CharactersSelectionActivity.this.startActivity(intent);
+                            } else {
+                                butt.setEnabled(true);
+                                Toast.makeText(getApplicationContext(), "El nombre ya existe o no se ha podido guardar. Elija otro o pruebe de nuevo.", Toast.LENGTH_LONG).show();
+                                // set focus en el texto
+                                txt.requestFocus();
+                                applyAnim(select2);
+                            }
                         }
-
-                        @Override
-                        public void onNameAlreadyExists() {
-                            butt.setEnabled(true);
-                            Toast.makeText(getApplicationContext(), "El nombre ya existe. Elija otro.", Toast.LENGTH_LONG).show();
-                            // set focus en el texto
-                            txt.requestFocus();
-                            applyAnim(select2);
-                        }
-                    }, name);*/
-
-
-
-
-
-
-
-
+                    });
+                    startService(mServiceIntent); // Starts the IntentService
 
                 } else {
                     if (chr_selected == ICommon.CHRS_NOT_SET) {
@@ -234,27 +209,4 @@ public class CharactersSelectionActivity extends AppCompatActivity implements IU
         Log.d("CHR CREATION SCR", "user changed");
     }
 
-    private void addDefaultTreasure(User user) {
-        //Treasure
-        String uid = user.getUid();
-        Treasure t = new Treasure(uid);
-        String treasureId = uid + "_" + t.getCreated().getTime();
-        user.getBackpack().put(treasureId, t);
-    }
-
-    public interface INameCheckCallbacks {
-        public void onValidUsername();
-
-        public void onNameAlreadyExists();
-    }
-
-    public interface INameStoringCallbacks {
-        public void onStored(boolean ok);
-    }
-
-    public interface IUserInitialStoreCallbacks {
-        public void onUserCreationError();
-
-        public void onUserCreationSuccess();
-    }
 }

@@ -3,16 +3,18 @@ package com.deepred.subworld.engine;
 import android.app.Activity;
 import android.app.IntentService;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.ResultReceiver;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.deepred.subworld.ApplicationHolder;
 import com.deepred.subworld.ICommon;
+import com.deepred.subworld.model.Treasure;
 import com.deepred.subworld.model.User;
-import com.deepred.subworld.utils.ILoginCallbacks;
-import com.deepred.subworld.utils.IUserCallbacks;
+import com.deepred.subworld.utils.ICallbacks;
 import com.deepred.subworld.utils.IViewRangeListener;
 import com.deepred.subworld.utils.MyUserManager;
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -39,9 +41,9 @@ public class GameService extends IntentService implements IViewRangeListener {
     // Pending locations, etc.
     private boolean hasMyLocationPending = false;
     private boolean hasLocationsPending = false;
-    private Map<String, LatLng> locsPending = new HashMap<String, LatLng>();
+    private Map<String, LatLng> locsPending = new HashMap<>();
     private boolean hasRemovesPending = false;
-    private ArrayList<String> removesPending = new ArrayList<String>();
+    private ArrayList<String> removesPending = new ArrayList<>();
     private boolean hasZoomPending = false;
     private float zoomPending;
     private boolean hasProvPending = false;
@@ -60,122 +62,193 @@ public class GameService extends IntentService implements IViewRangeListener {
         // Gets data from the incoming Intent
         String dataString = workIntent.getDataString();
 
-        if (dataString.equals(ICommon.NEW_LOCATION_FROM_SRV)) {
+        switch (dataString) {
+            case ICommon.NEW_LOCATION_FROM_SRV: {
             /*
             * A new location is provided by GoogleLocationServiceImpl
              */
-            Bundle bundle = workIntent.getExtras();
-            if (bundle == null) {
-                return;
-            }
-            Location location = bundle.getParcelable(ICommon.NEW_LOCATION_FROM_SRV);
-            if (location == null) {
-                return;
-            }
+                Bundle bundle = workIntent.getExtras();
+                if (bundle == null) {
+                    return;
+                }
+                Location location = bundle.getParcelable(ICommon.NEW_LOCATION_FROM_SRV);
+                if (location == null) {
+                    return;
+                }
 
-            // Filter old, unaccurate locations
-            if (isBetterLocation(location)) {
-                lastLocation = location;
-                // Deal with new location: DDBB query to update the rivals that are within are view range
-                viewRange.update(lastLocation);
-            }
+                // Filter old, unaccurate locations
+                if (isBetterLocation(location)) {
+                    lastLocation = location;
+                    // Deal with new location: DDBB query to update the rivals that are within are view range
+                    viewRange.update(lastLocation);
+                }
 
-        } else if (dataString.equals(ICommon.MAP_ACTIVITY_RESUMED)) {
+                break;
+            }
+            case ICommon.MAP_ACTIVITY_RESUMED:
             /*
             * Map activity just resumed
              */
-            mapActivityIsResumed = true;
+                mapActivityIsResumed = true;
 
-            if (hasMyLocationPending) {
-                // Broadcast my location
-                broadcastLocation(lastLocation);
-                hasMyLocationPending = false;
-            }
-
-            if (hasLocationsPending) {
-                for (String uid : locsPending.keySet()) {
-                    // Broadcast rivals locations
-                    broadcastRivalLocation(uid, locsPending.get(uid));
-                    locsPending.remove(uid);
+                if (hasMyLocationPending) {
+                    // Broadcast my location
+                    broadcastLocation(lastLocation);
+                    hasMyLocationPending = false;
                 }
-                hasLocationsPending = false;
-            }
 
-            if (hasRemovesPending) {
-                for (String uid : removesPending) {
-                    // Remove rivals from map
-                    broadcastRemoveRival(uid);
-                    removesPending.remove(uid);
+                if (hasLocationsPending) {
+                    for (String uid : locsPending.keySet()) {
+                        // Broadcast rivals locations
+                        broadcastRivalLocation(uid, locsPending.get(uid));
+                        locsPending.remove(uid);
+                    }
+                    hasLocationsPending = false;
                 }
-                hasRemovesPending = false;
-            }
 
-            if (hasZoomPending) {
-                // Broadcast zoom change
-                broadcastZoom(zoomPending);
-                hasZoomPending = false;
-            }
+                if (hasRemovesPending) {
+                    for (String uid : removesPending) {
+                        // Remove rivals from map
+                        broadcastRemoveRival(uid);
+                        removesPending.remove(uid);
+                    }
+                    hasRemovesPending = false;
+                }
 
-            if (hasProvPending) {
-                // Broadcast provider change
-                broadcastProvider(provPending);
-                hasProvPending = false;
-            }
+                if (hasZoomPending) {
+                    // Broadcast zoom change
+                    broadcastZoom(zoomPending);
+                    hasZoomPending = false;
+                }
 
-        } else if (dataString.equals(ICommon.MAP_ACTIVITY_PAUSED)) {
+                if (hasProvPending) {
+                    // Broadcast provider change
+                    broadcastProvider(provPending);
+                    hasProvPending = false;
+                }
+
+                break;
+            case ICommon.MAP_ACTIVITY_PAUSED:
             /*
             * Map activity just paused
              */
-            mapActivityIsResumed = false;
+                mapActivityIsResumed = false;
 
-        } else if (dataString.equals(ICommon.SET_BACKGROUND_STATUS)) {
+                break;
+            case ICommon.SET_BACKGROUND_STATUS: {
             /*
             *
              */
-            Bundle bundle = workIntent.getExtras();
-            if (bundle == null) {
-                return;
+                Bundle bundle = workIntent.getExtras();
+                if (bundle == null) {
+                    return;
+                }
+                boolean status = bundle.getBoolean(ICommon.SET_BACKGROUND_STATUS);
+                changeBackgroundState(status);
+                break;
             }
-            boolean status = bundle.getBoolean(ICommon.SET_BACKGROUND_STATUS);
-            changeBackgroundState(status);
-        } else if (dataString.equals(ICommon.LOGIN_REGISTER)) {
+            case ICommon.LOGIN_REGISTER:
             /*
             * Login or register
              */
-            String email = workIntent.getStringExtra(ICommon.EMAIL);
-            String password = workIntent.getStringExtra(ICommon.PASSWORD);
-            final String screen_context = workIntent.getStringExtra(ICommon.SCREEN_CONTEXT);
+                String email = workIntent.getStringExtra(ICommon.EMAIL);
+                String password = workIntent.getStringExtra(ICommon.PASSWORD);
+                final String screen_context = workIntent.getStringExtra(ICommon.SCREEN_CONTEXT);
 
-            // Login with credentials
-            DataManager.getInstance().loginOrRegister(email, password, new ILoginCallbacks() {
+                // Login with credentials
+                DataManager.getInstance().loginOrRegister(email, password, new ICallbacks.ILoginCallbacks() {
 
-                @Override
-                public void onLoginOk(boolean wait4User) {
-                    Log.v(TAG, "Requesting login on firebase");
+                    @Override
+                    public void onLoginOk(boolean wait4User) {
+                        Log.v(TAG, "Requesting login on firebase");
 
-                    Intent localIntent = new Intent(ICommon.BBDD_CONNECTED);
-                    // Broadcasts the Intent to receivers in this app.
-                    LocalBroadcastManager.getInstance(GameService.this).sendBroadcast(localIntent);
+                        Intent localIntent = new Intent(ICommon.BBDD_CONNECTED);
+                        // Broadcasts the Intent to receivers in this app.
+                        LocalBroadcastManager.getInstance(GameService.this).sendBroadcast(localIntent);
 
-                    DataManager.getInstance().getUser();
+                        DataManager.getInstance().getUser();
 
-                    // Notify the screen to update interface
-                    ResultReceiver rec = workIntent.getParcelableExtra(ICommon.RESULT_RECEIVER);
-                    //Bundle b= new Bundle();
-                    //b.putString("ServiceTag","aziz");
-                    rec.send(Activity.RESULT_OK, /*b*/ null);
-                }
+                        // Notify the screen to update interface
+                        ResultReceiver rec = workIntent.getParcelableExtra(ICommon.RESULT_RECEIVER);
+                        //Bundle b= new Bundle();
+                        //b.putString("ServiceTag","aziz");
+                        rec.send(Activity.RESULT_OK, /*b*/ null);
+                    }
 
-                @Override
-                public void onLoginError() {
-                    // From LoginActivity: notify the screen to update interface
-                    ResultReceiver rec = workIntent.getParcelableExtra(ICommon.RESULT_RECEIVER);
-                    //Bundle b= new Bundle();
-                    //b.putString("ServiceTag","aziz");
-                    rec.send(Activity.RESULT_CANCELED, /*b*/ null);
-                }
-            });
+                    @Override
+                    public void onLoginError() {
+                        // From LoginActivity: notify the screen to update interface
+                        ResultReceiver rec = workIntent.getParcelableExtra(ICommon.RESULT_RECEIVER);
+                        //Bundle b= new Bundle();
+                        //b.putString("ServiceTag","aziz");
+                        rec.send(Activity.RESULT_CANCELED, /*b*/ null);
+                    }
+                });
+                break;
+            case ICommon.CHECK_NAME:
+                final String name = workIntent.getStringExtra(ICommon.NAME);
+                final int chr_selected = workIntent.getIntExtra(ICommon.CHR_TYPE, ICommon.CHRS_NOT_SET);
+
+                DataManager.getInstance().checkName(name, new ICallbacks.INameCheckCallbacks() {
+                    @Override
+                    public void onValidUsername() {
+                        DataManager.getInstance().storeUsername(name, new ICallbacks.INameStoringCallbacks() {
+                            @Override
+                            public void onStored(boolean ok) {
+                                if (ok) {
+                                    User u = MyUserManager.getInstance().getUser();
+                                    String uid = DataManager.getInstance().getUid();
+                                    u.setUid(uid);
+                                    u.setName(name);
+                                    u.setChrType(chr_selected);
+                                    SharedPreferences prefs = ApplicationHolder.getApp().getPreferences();
+                                    u.setEmail(prefs.getString(ICommon.EMAIL, null));
+                                    addDefaultTreasure(u);
+                                    DataManager.getInstance().saveUser(u, new ICallbacks.IUserInitialStoreCallbacks() {
+                                        @Override
+                                        public void onUserCreationError() {
+                                            ResultReceiver rec = workIntent.getParcelableExtra(ICommon.RESULT_RECEIVER);
+                                            Bundle b = new Bundle();
+                                            b.putString(ICommon.MOTIVE, "Error storing user. Try again later.");
+                                            rec.send(Activity.RESULT_CANCELED, b);
+                                        }
+
+                                        @Override
+                                        public void onUserCreationSuccess() {
+                                            ResultReceiver rec = workIntent.getParcelableExtra(ICommon.RESULT_RECEIVER);
+                                            rec.send(Activity.RESULT_OK, null);
+                                        }
+                                    });
+
+                                } else {
+                                    ResultReceiver rec = workIntent.getParcelableExtra(ICommon.RESULT_RECEIVER);
+                                    Bundle b = new Bundle();
+                                    b.putString(ICommon.MOTIVE, "Error storing user name. Try again later.");
+                                    rec.send(Activity.RESULT_CANCELED, b);
+                                }
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onNameAlreadyExists() {
+                        ResultReceiver rec = workIntent.getParcelableExtra(ICommon.RESULT_RECEIVER);
+                        Bundle b = new Bundle();
+                        b.putString(ICommon.MOTIVE, "Name already exists");
+                        rec.send(Activity.RESULT_CANCELED, b);
+                    }
+                });
+
+                break;
         }
+    }
+
+    private void addDefaultTreasure(User user) {
+        //Treasure
+        String uid = user.getUid();
+        Treasure t = new Treasure(uid);
+        String treasureId = uid + "_" + t.getCreated().getTime();
+        user.getBackpack().put(treasureId, t);
     }
 
 
@@ -360,7 +433,7 @@ public class GameService extends IntentService implements IViewRangeListener {
         final float distance = lastLocation.distanceTo(otherUserLocation);
 
         // Obtener el usuario de la BBDD
-        DataManager.getInstance().getUser(uid, new IUserCallbacks() {
+        DataManager.getInstance().getUser(uid, new ICallbacks.IUserCallbacks() {
             @Override
             public void onUserChange(User user) {
                 boolean isVisible = applyVisibilityRules(myUser, user, distance);
@@ -375,17 +448,14 @@ public class GameService extends IntentService implements IViewRangeListener {
         int myWatchingSkill = myUser.getSkills().getWatching().getValue();
         int otherHidingSkill = otherUser.getSkills().getHiding().getValue();
         int tot = myWatchingSkill - otherHidingSkill;
-        if(tot < 0)
+        if (tot < 0)
             tot = 0;
         int range = calculateDistanceRange(distance);
-        if (range > -1)
-            return ICommon.distanceTable[tot][range];
-        else
-            return false;
+        return range > -1 && ICommon.distanceTable[tot][range];
     }
 
     private int calculateDistanceRange(float distance) {
-        Float d = new Float(distance);
+        Float d = distance;
         int dist = d.intValue();
         for (int i = 0; i < ICommon.distanceRanges.length; i++) {
             if(dist <= ICommon.distanceRanges[i]) {

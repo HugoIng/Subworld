@@ -12,7 +12,7 @@ import com.deepred.subworld.engine.GameService;
 import com.deepred.subworld.model.User;
 import com.deepred.subworld.notifications.BaseNotificationBuilder;
 import com.deepred.subworld.service.LocationService;
-import com.deepred.subworld.utils.IUserCallbacks;
+import com.deepred.subworld.utils.ICallbacks;
 import com.deepred.subworld.utils.MyUserManager;
 import com.deepred.subworld.views.CharactersSelectionActivity;
 import com.deepred.subworld.views.LoginActivity;
@@ -21,7 +21,7 @@ import com.deepred.subworld.views.MapActivityImpl;
 /**
  * Created by aplicaty on 25/02/16.
  */
-public class InitApplication extends Activity implements IUserCallbacks {
+public class InitApplication extends Activity implements ICallbacks.IUserCallbacks {
     private static final String TAG = "InitAplication";
     private SubworldApplication app;
     private Bundle extraFromNotification = null;
@@ -89,7 +89,9 @@ public class InitApplication extends Activity implements IUserCallbacks {
     @Override
     protected void onDestroy(){
         super.onDestroy();
-        MyUserManager.getInstance().unregister4UserNotifications(this);
+        if (email != null && password != null) {
+            MyUserManager.getInstance().unregister4UserNotifications(this);
+        }
     }
     
 
