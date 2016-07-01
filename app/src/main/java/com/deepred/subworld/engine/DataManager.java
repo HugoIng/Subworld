@@ -263,24 +263,35 @@ class DataManager implements GeoQueryEventListener {
         Log.d(TAG, "onKeyEntered: " + id);
 
         // Check if location is a rival or a treasure
-        int type = ICommon.LOCATION_TYPE_RIVAL;
+        int type;
         if (id.startsWith(ICommon.GEO_TREASURE_PREFIX)) {
             type = ICommon.LOCATION_TYPE_TREASURE;
+        } else {
+            type = ICommon.LOCATION_TYPE_RIVAL;
         }
-
-        ViewRangeManager.getInstance().add(id, type, geoLocation, id.equals(uid));
+        ViewRangeManager.getInstance().add(stripPrefix(id), type, geoLocation, id.equals(uid));
     }
 
     @Override
     public void onKeyExited(String id) {
         Log.d(TAG, "onKeyExited: " + id);
-        ViewRangeManager.getInstance().remove(id);
+        ViewRangeManager.getInstance().remove(stripPrefix(id));
     }
 
     @Override
     public void onKeyMoved(String id, GeoLocation geoLocation) {
         Log.d(TAG, "onKeyMoved: " + id);
-        ViewRangeManager.getInstance().add(id, ICommon.LOCATION_TYPE_RIVAL, geoLocation, id.equals(uid));
+        ViewRangeManager.getInstance().add(stripPrefix(id), ICommon.LOCATION_TYPE_RIVAL, geoLocation, id.equals(uid));
+    }
+
+    private String stripPrefix(String id) {
+        String prefix;
+        if (id.startsWith(ICommon.GEO_TREASURE_PREFIX)) {
+            prefix = ICommon.GEO_TREASURE_PREFIX;
+        } else {
+            prefix = ICommon.GEO_USR_PREFIX;
+        }
+        return id.substring(prefix.length() - 1);
     }
 
     @Override
