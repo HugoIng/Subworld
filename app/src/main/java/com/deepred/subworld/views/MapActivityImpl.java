@@ -18,6 +18,7 @@ import com.deepred.subworld.R;
 import com.deepred.subworld.SubworldApplication;
 import com.deepred.subworld.engine.GameService;
 import com.deepred.subworld.model.MapMarker;
+import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
@@ -139,10 +140,19 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
         if (m != null) {
             updateExistingMarker(m, latLng);
         } else {
+            IconFactory iconFactory = IconFactory.getInstance(this);
+            Drawable iconDrawable;
+            if (type == ICommon.LOCATION_TYPE_TREASURE) {
+                iconDrawable = ContextCompat.getDrawable(this, R.drawable.arrow_smaller);
+            } else {
+                iconDrawable = ContextCompat.getDrawable(this, R.drawable.arrow_smaller);
+            }
+            Icon icon = iconFactory.fromDrawable(iconDrawable);
+
             MarkerOptions m2 = new MarkerOptions()
                     .position(latLng)
                     .title("User " + uid)
-                    //.icon(icon));
+                    .icon(icon)
                     .snippet("marker to user " + uid);
             updateNewMarker(uid, type, m2);
         }

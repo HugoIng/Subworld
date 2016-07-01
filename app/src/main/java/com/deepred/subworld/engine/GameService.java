@@ -38,7 +38,7 @@ public class GameService extends IntentService implements IViewRangeListener {
     private Location lastLocation;
     private boolean mapActivityIsResumed;
 
-    private UsersViewRangeManager viewRange;
+    private ViewRangeManager viewRange;
 
     // Pending locations, etc.
     private boolean hasMyLocationPending = false;
@@ -55,7 +55,7 @@ public class GameService extends IntentService implements IViewRangeListener {
         super(TAG);
         lastLocation = null;
         mapActivityIsResumed = false;
-        viewRange = UsersViewRangeManager.getInstance();
+        viewRange = ViewRangeManager.getInstance();
         viewRange.setServiceContext(this);
     }
 
@@ -102,7 +102,7 @@ public class GameService extends IntentService implements IViewRangeListener {
                 if (hasLocationsPending) {
                     for (String uid : locsPending.keySet()) {
                         // Broadcast rivals locations
-                        broadcastRivalLocation(uid, locsPending.get(uid));
+                        broadcastMapElementlLocation(uid, locsPending.get(uid));
                         locsPending.remove(uid);
                     }
                     hasLocationsPending = false;
@@ -111,7 +111,7 @@ public class GameService extends IntentService implements IViewRangeListener {
                 if (hasRemovesPending) {
                     for (String uid : removesPending) {
                         // Remove rivals from map
-                        broadcastRemoveRival(uid);
+                        broadcastRemoveMapElement(uid);
                         removesPending.remove(uid);
                     }
                     hasRemovesPending = false;
@@ -285,7 +285,7 @@ public class GameService extends IntentService implements IViewRangeListener {
     public void updateMapElementLocation(String uid, int type, LatLng latLng) {
         if (mapActivityIsResumed) {
             // Broadcast rival
-            broadcastRivalLocation(uid, latLng);
+            broadcastMapElementlLocation(uid, latLng);
         } else {
             locsPending.put(uid, latLng);
             hasLocationsPending = true;
@@ -296,7 +296,7 @@ public class GameService extends IntentService implements IViewRangeListener {
     public void removeMapElementLocation(String uid) {
         if (mapActivityIsResumed) {
             // Broadcast marker id to be erased from map
-            broadcastRemoveRival(uid);
+            broadcastRemoveMapElement(uid);
         } else {
             removesPending.add(uid);
             hasRemovesPending = true;
@@ -339,7 +339,7 @@ public class GameService extends IntentService implements IViewRangeListener {
         LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
     }
 
-    private void broadcastRivalLocation(String uid, LatLng latLng) {
+    private void broadcastMapElementlLocation(String uid, LatLng latLng) {
         Intent localIntent =
                 new Intent(ICommon.MAPELEMENT_LOCATION)
                         // Puts the status into the Intent
@@ -350,7 +350,7 @@ public class GameService extends IntentService implements IViewRangeListener {
         LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
     }
 
-    private void broadcastRemoveRival(String uid) {
+    private void broadcastRemoveMapElement(String uid) {
         Intent localIntent =
                 new Intent(ICommon.REMOVE_MAPELEMENT_LOCATION)
                         // Puts the status into the Intent
@@ -442,7 +442,7 @@ public class GameService extends IntentService implements IViewRangeListener {
         updateProvider(!backgroudStatus);
     }
 
-    public void checkVisibility(String uid, LatLng loc, final UsersViewRangeManager.IVisibilityCompletionListener cb) {
+    public void checkVisibility(String uid, LatLng loc, final ViewRangeManager.IVisibilityCompletionListener cb) {
         // Aplicar las reglas de visibilidad entre mi usuario y este
         Log.d(TAG, "checkVisibility: " + uid);
 

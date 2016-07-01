@@ -17,6 +17,7 @@ import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
+import com.mapbox.mapboxsdk.geometry.LatLng;
 
 import java.util.Map;
 
@@ -201,7 +202,7 @@ class DataManager implements GeoQueryEventListener {
         if(uid == null)
             return;
 
-        dbGeoRef.setLocation(uid, new GeoLocation(l.getLatitude(), l.getLongitude()), new GeoFire.CompletionListener() {
+        dbGeoRef.setLocation(ICommon.GEO_USR_PREFIX + uid, new GeoLocation(l.getLatitude(), l.getLongitude()), new GeoFire.CompletionListener() {
             @Override
             public void onComplete(String key, FirebaseError error) {
                 if (error != null) {
@@ -221,6 +222,33 @@ class DataManager implements GeoQueryEventListener {
         });
     }
 
+    public void insertTreasureLocation(String id, final LatLng l) {
+        dbGeoRef.setLocation(ICommon.GEO_TREASURE_PREFIX + id, new GeoLocation(l.getLatitude(), l.getLongitude()), new GeoFire.CompletionListener() {
+            @Override
+            public void onComplete(String key, FirebaseError error) {
+                if (error != null) {
+                    Log.e(TAG, "There was an error saving the location to GeoFire: " + error);
+                } else {
+                    Log.d(TAG, "Location saved on server successfully!");
+                }
+            }
+        });
+    }
+
+    void removeTreasureLocation(String id) {
+        dbGeoRef.removeLocation(ICommon.GEO_TREASURE_PREFIX + id, new GeoFire.CompletionListener() {
+                    @Override
+                    public void onComplete(String key, FirebaseError error) {
+                        if (error != null) {
+                            Log.e(TAG, "There was an error deleting the location to GeoFire: " + error);
+                        } else {
+                            Log.d(TAG, "Location deleted successfully!");
+                        }
+                    }
+                }
+        );
+    }
+
     public void stopQueryingLocations() {
         geoQuery.removeAllListeners();
     }
@@ -234,27 +262,31 @@ class DataManager implements GeoQueryEventListener {
     public void onKeyEntered(String id, GeoLocation geoLocation) {
         Log.d(TAG, "onKeyEntered: " + id);
 
-        // TODO determinar si el punto corresponde a un usuario o a un treasure
+        // Check if location is a rival or a treasure
+        int type = ICommon.LOCATION_TYPE_RIVAL;
+        if (id.startsWith(ICommon.GEO_TREASURE_PREFIX)) {
+            type = ICommon.LOCATION_TYPE_TREASURE;
+        }
 
-        UsersViewRangeManager.getInstance().add(id, ICommon.LOCATION_TYPE_RIVAL, geoLocation, id.equals(uid));
+        ViewRangeManager.getInstance().add(id, type, geoLocation, id.equals(uid));
     }
 
     @Override
     public void onKeyExited(String id) {
         Log.d(TAG, "onKeyExited: " + id);
-        UsersViewRangeManager.getInstance().remove(id);
+        ViewRangeManager.getInstance().remove(id);
     }
 
     @Override
     public void onKeyMoved(String id, GeoLocation geoLocation) {
         Log.d(TAG, "onKeyMoved: " + id);
-        UsersViewRangeManager.getInstance().add(id, ICommon.LOCATION_TYPE_RIVAL, geoLocation, id.equals(uid));
+        ViewRangeManager.getInstance().add(id, ICommon.LOCATION_TYPE_RIVAL, geoLocation, id.equals(uid));
     }
 
     @Override
     public void onGeoQueryReady() {
         Log.d(TAG, "onGeoQueryReady");
-        UsersViewRangeManager.getInstance().queryCompleted();
+        ViewRangeManager.getInstance().queryCompleted();
     }
 
     @Override

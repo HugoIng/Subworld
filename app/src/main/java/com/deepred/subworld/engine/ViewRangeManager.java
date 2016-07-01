@@ -18,11 +18,11 @@ import java.util.List;
 /**
  * Created by aplicaty on 29/02/16.
  */
-public class UsersViewRangeManager {
+public class ViewRangeManager {
 
     private final static String TAG = "RangeManager";
     private static Object lock = new Object();
-    private static volatile UsersViewRangeManager instance = null;
+    private static volatile ViewRangeManager instance = null;
     private GameService gm;
     private MapElements elems;
     private GeoLocation myLocation;
@@ -30,20 +30,21 @@ public class UsersViewRangeManager {
     private float zoom;
     private boolean applyRangeReduction;
     private List<String> previousUsersToBeRemoved;
-    private UsersViewRangeManager() {
+
+    private ViewRangeManager() {
         elems = new MapElements();
         previousUsersToBeRemoved = new ArrayList<>();
         applyRangeReduction = false;
         zoom = rangeToZoomLevel();
     }
 
-    public static UsersViewRangeManager getInstance() {
-        UsersViewRangeManager localInstance = instance;
+    public static ViewRangeManager getInstance() {
+        ViewRangeManager localInstance = instance;
         if(localInstance == null) {
             synchronized (lock) {
                 localInstance = instance;
                 if(localInstance == null) {
-                    instance = localInstance = new UsersViewRangeManager();
+                    instance = localInstance = new ViewRangeManager();
                 }
             }
         }

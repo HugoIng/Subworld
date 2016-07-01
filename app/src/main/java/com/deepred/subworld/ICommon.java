@@ -22,6 +22,11 @@ public class ICommon {
     public static final String FIREBASE_REF = "https://subworld.firebaseio.com/";
     public static final String GEO_FIRE_REF = "https://subworld.firebaseio.com/_geofire";
 
+    public static final String GEO_USR_PREFIX = "usr_";
+    public static final String GEO_TREASURE_PREFIX = "tre_";
+
+
+
     // Characters
     public final static String CHR_TYPE = "chr_type";
     public final static int CHRS_NOT_SET = -1;
