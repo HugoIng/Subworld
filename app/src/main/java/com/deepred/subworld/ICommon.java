@@ -30,6 +30,8 @@ public class ICommon {
     public final static int CHRS_SPY = 2;
     public final static int CHRS_THIEF = 3;
 
+    public static final int MARKER_RIVAL = 0;
+    public static final int MARKER_TREASURE = 1;
 
 
     //Skills
@@ -94,7 +96,7 @@ public class ICommon {
             TREASURE_DEFAULT_VALUE_SILVER,
             TREASURE_DEFAULT_VALUE_DIAMONDS};
     // Locations
-    public final static int LOCATION_TYPE_USER = 0;
+    public final static int LOCATION_TYPE_RIVAL = 0;
     public final static int LOCATION_TYPE_TREASURE = 1;
     // Location related constants
     // The minimum distance to change Updates in meters
@@ -144,16 +146,18 @@ public class ICommon {
     public static final String SET_BACKGROUND_STATUS = "get_background_status";
     public static final String LOGIN_REGISTER = "login_register";
     public static final String CHECK_NAME = "check_name";
+    public static final String MAPELEMENT_SELECTED = "rival_selected";
     public static final String SCREEN_CONTEXT = "screen_context";
     public static final String RESULT_RECEIVER = "result";
     public static final String MOTIVE = "motive";
     // Local broadcasts done by GameService
     public static final String MY_LOCATION = "my_location";
-    public static final String RIVAL_LOCATION = "rival_location";
-    public static final String REMOVE_RIVAL_LOCATION = "remove_rival_location";
+    public static final String MAPELEMENT_LOCATION = "mapelement_location";
+    public static final String REMOVE_MAPELEMENT_LOCATION = "remove_mapelement_location";
     public static final String SET_ZOOM = "set_zoom";
     public static final String SET_PROVIDER_INFO = "set_provider_info";
     public static final String UID = "uid";
+    public static final String MAPELEMENT_TYPE = "mapelement_type";
     // Custom broadcasts sent to StatusReceiver
     public static final String BACKGROUND_STATUS = "background_status";
     public static final String BBDD_CONNECTED = "bbdd_connected";

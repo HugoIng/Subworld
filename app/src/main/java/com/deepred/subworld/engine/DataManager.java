@@ -233,7 +233,10 @@ class DataManager implements GeoQueryEventListener {
     @Override
     public void onKeyEntered(String id, GeoLocation geoLocation) {
         Log.d(TAG, "onKeyEntered: " + id);
-        UsersViewRangeManager.getInstance().add(id, geoLocation, id.equals(uid));
+
+        // TODO determinar si el punto corresponde a un usuario o a un treasure
+
+        UsersViewRangeManager.getInstance().add(id, ICommon.LOCATION_TYPE_RIVAL, geoLocation, id.equals(uid));
     }
 
     @Override
@@ -245,7 +248,7 @@ class DataManager implements GeoQueryEventListener {
     @Override
     public void onKeyMoved(String id, GeoLocation geoLocation) {
         Log.d(TAG, "onKeyMoved: " + id);
-        UsersViewRangeManager.getInstance().add(id, geoLocation, id.equals(uid));
+        UsersViewRangeManager.getInstance().add(id, ICommon.LOCATION_TYPE_RIVAL, geoLocation, id.equals(uid));
     }
 
     @Override

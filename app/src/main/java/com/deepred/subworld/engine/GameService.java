@@ -12,11 +12,13 @@ import android.util.Log;
 
 import com.deepred.subworld.ApplicationHolder;
 import com.deepred.subworld.ICommon;
+import com.deepred.subworld.model.MapElement;
 import com.deepred.subworld.model.Treasure;
 import com.deepred.subworld.model.User;
 import com.deepred.subworld.utils.ICallbacks;
 import com.deepred.subworld.utils.IViewRangeListener;
 import com.deepred.subworld.utils.MyUserManager;
+import com.deepred.subworld.views.UserActionActivity;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 
 import java.util.ArrayList;
@@ -65,7 +67,7 @@ public class GameService extends IntentService implements IViewRangeListener {
         switch (dataString) {
             case ICommon.NEW_LOCATION_FROM_SRV: {
             /*
-            * A new location is provided by GoogleLocationServiceImpl
+            * A new location is provided by GoogleLocationServiceImpl for my user
              */
                 Bundle bundle = workIntent.getExtras();
                 if (bundle == null) {
@@ -240,6 +242,23 @@ public class GameService extends IntentService implements IViewRangeListener {
                 });
 
                 break;
+
+            case ICommon.MAPELEMENT_SELECTED:
+                final String uid = workIntent.getStringExtra(ICommon.UID);
+                if (uid != null && !uid.isEmpty()) {
+                    MapElement r = viewRange.getMapElement(uid);
+
+                    // distancia entre mi usuario y el rival
+
+                    // Acciones en funcion de las habilidades y la distancia
+
+                    // Info a mostrar del usuario
+
+                    Intent outI = new Intent(this, UserActionActivity.class);
+
+                    startActivity(outI);
+                }
+                break;
         }
     }
 
@@ -263,7 +282,7 @@ public class GameService extends IntentService implements IViewRangeListener {
     }
 
     @Override
-    public void updateRivalLocation(String uid, LatLng latLng) {
+    public void updateMapElementLocation(String uid, int type, LatLng latLng) {
         if (mapActivityIsResumed) {
             // Broadcast rival
             broadcastRivalLocation(uid, latLng);
@@ -274,7 +293,7 @@ public class GameService extends IntentService implements IViewRangeListener {
     }
 
     @Override
-    public void removeRivalLocation(String uid) {
+    public void removeMapElementLocation(String uid) {
         if (mapActivityIsResumed) {
             // Broadcast marker id to be erased from map
             broadcastRemoveRival(uid);
@@ -322,9 +341,10 @@ public class GameService extends IntentService implements IViewRangeListener {
 
     private void broadcastRivalLocation(String uid, LatLng latLng) {
         Intent localIntent =
-                new Intent(ICommon.RIVAL_LOCATION)
+                new Intent(ICommon.MAPELEMENT_LOCATION)
                         // Puts the status into the Intent
-                        .putExtra(ICommon.RIVAL_LOCATION, latLng)
+                        .putExtra(ICommon.MAPELEMENT_LOCATION, latLng)
+                        .putExtra(ICommon.MAPELEMENT_TYPE, ICommon.MARKER_RIVAL)
                         .putExtra(ICommon.UID, uid);
         // Broadcasts the Intent to receivers in this app.
         LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
@@ -332,7 +352,7 @@ public class GameService extends IntentService implements IViewRangeListener {
 
     private void broadcastRemoveRival(String uid) {
         Intent localIntent =
-                new Intent(ICommon.REMOVE_RIVAL_LOCATION)
+                new Intent(ICommon.REMOVE_MAPELEMENT_LOCATION)
                         // Puts the status into the Intent
                         .putExtra(ICommon.UID, uid);
         // Broadcasts the Intent to receivers in this app.

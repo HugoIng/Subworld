@@ -22,22 +22,31 @@ public class MapActivityReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
 
-        if (action.equals(ICommon.MY_LOCATION)) {
-            Location loc = intent.getParcelableExtra(ICommon.MY_LOCATION);
-            act.updateMyMarker(loc);
-        } else if (action.equals(ICommon.RIVAL_LOCATION)) {
-            LatLng latLng = intent.getParcelableExtra(ICommon.RIVAL_LOCATION);
-            String uid = intent.getStringExtra(ICommon.UID);
-            act.updateMarker(uid, latLng);
-        } else if (action.equals(ICommon.REMOVE_RIVAL_LOCATION)) {
-            String uid = intent.getStringExtra(ICommon.UID);
-            act.removeMarker(uid);
-        } else if (action.equals(ICommon.SET_ZOOM)) {
-            float zoom = intent.getFloatExtra(ICommon.SET_ZOOM, 0);
-            act.setZoom(zoom);
-        } else if (action.equals(ICommon.SET_PROVIDER_INFO)) {
-            boolean prov = intent.getBooleanExtra(ICommon.SET_PROVIDER_INFO, false);
-            act.providerChanged(prov);
+        switch (action) {
+            case ICommon.MY_LOCATION:
+                Location loc = intent.getParcelableExtra(ICommon.MY_LOCATION);
+                act.updateMyMarker(loc);
+                break;
+            case ICommon.MAPELEMENT_LOCATION: {
+                LatLng latLng = intent.getParcelableExtra(ICommon.MAPELEMENT_LOCATION);
+                String uid = intent.getStringExtra(ICommon.UID);
+                int type = intent.getIntExtra(ICommon.MAPELEMENT_TYPE, 0);
+                act.updateMarker(uid, type, latLng);
+                break;
+            }
+            case ICommon.REMOVE_MAPELEMENT_LOCATION: {
+                String uid = intent.getStringExtra(ICommon.UID);
+                act.removeMarker(uid);
+                break;
+            }
+            case ICommon.SET_ZOOM:
+                float zoom = intent.getFloatExtra(ICommon.SET_ZOOM, 0);
+                act.setZoom(zoom);
+                break;
+            case ICommon.SET_PROVIDER_INFO:
+                boolean prov = intent.getBooleanExtra(ICommon.SET_PROVIDER_INFO, false);
+                act.providerChanged(prov);
+                break;
         }
     }
 }

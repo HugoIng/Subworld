@@ -1,17 +1,23 @@
 package com.deepred.subworld.model;
 
 import com.firebase.geofire.GeoLocation;
+import com.mapbox.mapboxsdk.geometry.LatLng;
 
 /**
- * Created by aplicaty on 24/06/16.
+ * Created by Manuel.Gutierrez on 30/06/2016.
  */
-public class Rival {
-    private GeoLocation loc;
-    private boolean isVisible;
-    private User user;
+public abstract class MapElement {
 
-    public Rival(GeoLocation _loc, boolean _isVisible) {
+    protected GeoLocation loc;
+    protected boolean isVisible;
+
+    public MapElement(GeoLocation _loc, boolean _isVisible) {
         loc = _loc;
+        isVisible = _isVisible;
+    }
+
+    public MapElement(LatLng _ll, boolean _isVisible) {
+        loc = new GeoLocation(_ll.getLatitude(), _ll.getLongitude());
         isVisible = _isVisible;
     }
 
@@ -31,11 +37,4 @@ public class Rival {
         loc = _loc;
     }
 
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
 }

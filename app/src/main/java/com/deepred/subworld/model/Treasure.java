@@ -1,7 +1,7 @@
 package com.deepred.subworld.model;
 
-import android.location.Location;
 import com.deepred.subworld.ICommon;
+
 import java.util.Date;
 import java.util.Random;
 
@@ -15,7 +15,6 @@ public class Treasure {
     private Date hidden;
     private String owner;
     private int value;
-    private Location location;
 
     public Treasure() {
         /*owner = "";
@@ -25,11 +24,10 @@ public class Treasure {
         init();*/
     }
 
-    public Treasure(int _type, String _owner, int _value, Location _loc) {
+    public Treasure(int _type, String _owner, int _value) {
         type = _type;
         owner = _owner;
         value = _value;
-        location = _loc;
         init();
     }
 
@@ -38,7 +36,6 @@ public class Treasure {
      */
     public Treasure(String _owner) {
         owner = _owner;
-        location = null;
         created = new Date();
         obtained = created;
         hidden = null;
@@ -103,13 +100,5 @@ public class Treasure {
 
     public void setValue(int value) {
         this.value = value;
-    }
-
-    public Location getLocation() {
-        return location;
-    }
-
-    public void setLocation(Location location) {
-        this.location = location;
     }
 }

@@ -1,36 +1,38 @@
 package com.deepred.subworld.engine;
 
-import com.deepred.subworld.model.Rival;
+import com.deepred.subworld.model.MapElement;
+import com.deepred.subworld.model.MapRival;
 import com.firebase.geofire.GeoLocation;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
  *
  */
-public class RivalsMap {
+public class MapElements {
 
-    private HashMap<String, Rival> rivals;
+    private Map<String, MapElement> elems;
 
-    RivalsMap() {
-        rivals = new HashMap();
+    MapElements() {
+        elems = new HashMap<>();
     }
 
     public void put(String _uid, GeoLocation _loc, boolean visibility) {
-        rivals.put(_uid, new Rival(_loc, visibility));
+        elems.put(_uid, new MapRival(_loc, visibility));
     }
 
-    public Rival remove(String _uid) {
-        Rival obj = rivals.get(_uid);
-        rivals.remove(_uid);
+    public MapElement remove(String _uid) {
+        MapElement obj = elems.get(_uid);
+        elems.remove(_uid);
         return obj;
     }
 
     public int countVisibleUsersInRange() {
         int count = 0;
 
-        for (Rival r : rivals.values()) {
+        for (MapElement r : elems.values()) {
             if (r.isVisible())
                 count++;
         }
@@ -40,8 +42,8 @@ public class RivalsMap {
 
     public boolean isVisible(String uid) {
         boolean ret = false;
-        if (rivals.size() > 0) {
-            Rival u = rivals.get(uid);
+        if (elems.size() > 0) {
+            MapElement u = elems.get(uid);
             if(u != null) {
                 ret = u.isVisible();
             }
@@ -50,10 +52,10 @@ public class RivalsMap {
     }
 
     public Set<String> getKeys() {
-        return rivals.keySet();
+        return elems.keySet();
     }
 
-    public Rival get(String _uid) {
-        return rivals.get(_uid);
+    public MapElement get(String _uid) {
+        return elems.get(_uid);
     }
 }

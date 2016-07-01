@@ -17,7 +17,7 @@ import com.deepred.subworld.ICommon;
 import com.deepred.subworld.R;
 import com.deepred.subworld.SubworldApplication;
 import com.deepred.subworld.engine.GameService;
-import com.deepred.subworld.utils.IMapUpdatesListener;
+import com.deepred.subworld.model.MapMarker;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
@@ -31,21 +31,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Derives from AbstractMapActivity and implements IMapUpdatesListener methods
+ * Derives from AbstractMapActivity
  */
-public class MapActivityImpl extends AbstractMapActivity implements IMapUpdatesListener, MapboxMap.OnMarkerClickListener {
+public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.OnMarkerClickListener {
     private String TAG = "MapActivityImpl";
 
     // Markers
     private MarkerOptions myMark;
-    private Map<String, MarkerOptions> markers;
+    private Map<String, MapMarker> markers;
     private double zoom;
-
     private Location pendingMyMark;
-    private Map<String, LatLng> pendingMarkers;
+    private Map<String, MapMarker> pendingMarkers;
     private Double pendingZoom;
     private boolean isGps;
-
     private MapActivityReceiver serviceReceiver;
 
     @Override
@@ -61,8 +59,8 @@ public class MapActivityImpl extends AbstractMapActivity implements IMapUpdatesL
 
         serviceReceiver = new MapActivityReceiver(this);
         IntentFilter filter = new IntentFilter(ICommon.MY_LOCATION);
-        filter.addAction(ICommon.RIVAL_LOCATION);
-        filter.addAction(ICommon.REMOVE_RIVAL_LOCATION);
+        filter.addAction(ICommon.MAPELEMENT_LOCATION);
+        filter.addAction(ICommon.REMOVE_MAPELEMENT_LOCATION);
         filter.addAction(ICommon.SET_ZOOM);
         filter.addAction(ICommon.SET_PROVIDER_INFO);
         registerReceiver(serviceReceiver, filter);
@@ -91,7 +89,7 @@ public class MapActivityImpl extends AbstractMapActivity implements IMapUpdatesL
 
         // Set pending markers and zoom if they exist
         if (pendingZoom != null) {
-            zoom = Double.valueOf(pendingZoom);
+            zoom = pendingZoom;
             setZoom(zoom);
         }
         if (pendingMyMark != null) {
@@ -104,9 +102,9 @@ public class MapActivityImpl extends AbstractMapActivity implements IMapUpdatesL
 
             for (int i = 0; i < keys.size(); i++) {
                 String key = keys.get(i);
-                LatLng l = pendingMarkers.get(key);
+                MapMarker elem = pendingMarkers.get(key);
                 pendingMarkers.remove(key);
-                updateMarker(key, l);
+                updateMarker(key, elem.getType(), elem.getMo());
             }
         }
     }
@@ -134,39 +132,58 @@ public class MapActivityImpl extends AbstractMapActivity implements IMapUpdatesL
         return lastLocation;
     }
 
-    @Override
-    public void updateMarker(String uid, final LatLng latLng) {
+    public void updateMarker(String uid, int type, LatLng latLng) {
         Log.d(TAG, "updateMarker" + latLng.getLatitude() + "," + latLng.getLongitude() + ", uid:" + uid);
-
-        final MarkerOptions m = markers.get(uid);
+        final MapMarker elem = markers.get(uid);
+        final MarkerOptions m = elem.getMo();
         if (m != null) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    m.position(latLng);
-                }
-            });
+            updateExistingMarker(m, latLng);
         } else {
-            final MarkerOptions m2 = new MarkerOptions()
+            MarkerOptions m2 = new MarkerOptions()
                     .position(latLng)
                     .title("User " + uid)
                     //.icon(icon));
                     .snippet("marker to user " + uid);
-            if (map != null) {
-                markers.put(uid, m2);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        map.addMarker(m2);
-                    }
-                });
-            } else {
-                pendingMarkers.put(uid, latLng);
-            }
+            updateNewMarker(uid, type, m2);
         }
     }
 
-    @Override
+    public void updateMarker(String uid, int type, MarkerOptions mo) {
+        Log.d(TAG, "updateMarker" + mo.getPosition().getLatitude() + "," + mo.getPosition().getLongitude() + ", uid:" + uid);
+        final MapMarker elem = markers.get(uid);
+        final MarkerOptions m = elem.getMo();
+        if (m != null) {
+            updateExistingMarker(m, mo.getPosition());
+        } else {
+            updateNewMarker(uid, type, mo);
+        }
+    }
+
+    private void updateExistingMarker(final MarkerOptions m, final LatLng pos) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                m.position(pos);
+            }
+        });
+    }
+
+    private void updateNewMarker(String uid, int type, final MarkerOptions mo) {
+        MapMarker marker = new MapMarker(mo, type, uid);
+
+        if (map != null) {
+            markers.put(uid, marker);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    map.addMarker(mo);
+                }
+            });
+        } else {
+            pendingMarkers.put(uid, marker);
+        }
+    }
+
     public void updateMyMarker(final Location loc) {
         Log.d(TAG, "updateMyMarker: " + loc.getLatitude() + "," + loc.getLongitude() + ", bearing:" + loc.getBearing() + ", provider:" + loc.getProvider());
 
@@ -196,12 +213,11 @@ public class MapActivityImpl extends AbstractMapActivity implements IMapUpdatesL
                 Drawable iconDrawable = ContextCompat.getDrawable(this, R.drawable.arrow_smaller);
                 //Icon icon = iconFactory.fromDrawable(iconDrawable);
 
-                MarkerOptions m = new MarkerOptions()
+                myMark = new MarkerOptions()
                         .position(latLng)
                         .title("Me")
                         //.icon(icon)
                         .snippet("my marker");
-                myMark = m;
 
                 runOnUiThread(new Runnable() {
                     @Override
@@ -218,10 +234,10 @@ public class MapActivityImpl extends AbstractMapActivity implements IMapUpdatesL
         }
     }
 
-    @Override
     public void removeMarker(String uid) {
         if (map != null) {
-            final MarkerOptions m = markers.get(uid);
+            MapMarker elem = markers.get(uid);
+            final MarkerOptions m = elem.getMo();
             if (m != null) {
                 markers.remove(uid);
                 runOnUiThread(new Runnable() {
@@ -236,7 +252,6 @@ public class MapActivityImpl extends AbstractMapActivity implements IMapUpdatesL
         }
     }
 
-    @Override
     public void providerChanged(boolean GpsEnabled) {
         Log.d(TAG, "Provider changed: gps enabled:" + GpsEnabled);
         if (isGps != GpsEnabled) {
@@ -255,7 +270,6 @@ public class MapActivityImpl extends AbstractMapActivity implements IMapUpdatesL
         }
     }
 
-    @Override
     public void setZoom(double _zoom) {
         Log.d("WEB", "setZoom" + zoom);
         zoom = _zoom;
@@ -286,11 +300,16 @@ public class MapActivityImpl extends AbstractMapActivity implements IMapUpdatesL
             // Open drawer
             drawer.openDrawer(Gravity.LEFT);
         } else {
-            for (Map.Entry<String, MarkerOptions> entry : markers.entrySet()) {
-                if (entry.getValue().equals(marker)) {
+            for (Map.Entry<String, MapMarker> entry : markers.entrySet()) {
+                MarkerOptions m = entry.getValue().getMo();
+                if (m.getMarker().equals(marker)) {
                     Log.d(TAG, "Marker encontrado: " + entry.getKey());
-                    Intent intent = new Intent(getApplicationContext(), UserActionActivity.class);
-                    this.startActivity(intent);
+
+                    // Ask for the rival to the service
+                    Intent mServiceIntent = new Intent(this, GameService.class);
+                    mServiceIntent.setData(Uri.parse(ICommon.MAPELEMENT_SELECTED));
+                    mServiceIntent.putExtra(ICommon.UID, entry.getKey());
+                    startService(mServiceIntent); // Starts the IntentService
                 }
             }
         }
