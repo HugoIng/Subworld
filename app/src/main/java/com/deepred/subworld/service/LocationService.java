@@ -22,7 +22,7 @@ import com.deepred.subworld.ICommon;
  */
 public abstract class LocationService extends Service {
 
-    private final static String TAG = "Service";
+    private final static String TAG = "LocationService";
 
     protected static boolean requiredGpsMode = false;
     protected static boolean isConnectedBBDD = false; // Flag indicating BBDD conection is OK
@@ -59,7 +59,7 @@ public abstract class LocationService extends Service {
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         filter.addAction(ICommon.BACKGROUND_STATUS);
-        filter.addAction(ICommon.BBDD_CONNECTED);
+        //filter.addAction(ICommon.BBDD_CONNECTED);
         registerReceiver(handler, filter);
         registerComponentCallbacks(handler);
 

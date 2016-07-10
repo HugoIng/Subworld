@@ -1,5 +1,6 @@
 package com.deepred.subworld.service;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Application;
 import android.content.BroadcastReceiver;
@@ -8,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 
 import com.deepred.subworld.ICommon;
@@ -16,6 +18,7 @@ import com.deepred.subworld.engine.GameService;
 /**
  *
  */
+@TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class StatusReceiver extends BroadcastReceiver implements Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
     private static final String TAG = "StatusReceiver";
     private boolean isAppInBackgroundState; // Real app status Foreground / Background
@@ -31,23 +34,28 @@ public class StatusReceiver extends BroadcastReceiver implements Application.Act
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
 
-        if (action.equals(ICommon.BACKGROUND_STATUS)) {
-            boolean status = intent.getBooleanExtra(ICommon.BACKGROUND_STATUS, false);
-            if (srv != null)
-                srv.switchProvider(status);
-            else
-                LocationService.setProvider(status);
-        } else if (action.equals(Intent.ACTION_SCREEN_OFF)) {
-            screenOff = true;
-            updateScreenStatus(screenOff);
-        } else if (action.equals(Intent.ACTION_SCREEN_ON)) {
-            screenOff = false;
-            updateScreenStatus(screenOff);
-        } else if (action.equals(ICommon.BBDD_CONNECTED)) {
-            if (srv != null)
-                srv.onBBDDConnected();
-            else
-                LocationService.setBBDDConnected();
+        switch (action) {
+            case ICommon.BACKGROUND_STATUS:
+                boolean status = intent.getBooleanExtra(ICommon.BACKGROUND_STATUS, false);
+                if (srv != null)
+                    srv.switchProvider(status);
+                else
+                    LocationService.setProvider(status);
+                break;
+            case Intent.ACTION_SCREEN_OFF:
+                screenOff = true;
+                updateScreenStatus(screenOff);
+                break;
+            case Intent.ACTION_SCREEN_ON:
+                screenOff = false;
+                updateScreenStatus(screenOff);
+                break;
+            /*case ICommon.BBDD_CONNECTED:
+                if (srv != null)
+                    srv.onBBDDConnected();
+                else
+                    LocationService.setBBDDConnected();
+                break;*/
         }
     }
 
@@ -116,10 +124,7 @@ public class StatusReceiver extends BroadcastReceiver implements Application.Act
 
     private void setIsAppInBackground(boolean state) {
         isAppInBackgroundState = state;
-        //SubworldApplication app = ApplicationHolder.getApp();
-        //if (app != null) {
-            sendAppInBackgroundStatus(isAppInBackgroundState);
-        //}
+        sendAppInBackgroundStatus(isAppInBackgroundState);
     }
 
     private void sendAppInBackgroundStatus(boolean status) {
@@ -139,10 +144,7 @@ public class StatusReceiver extends BroadcastReceiver implements Application.Act
     public void updateScreenStatus(boolean screenState) {
         screenOff = screenState;
         if (!isAppInBackgroundState) {
-            //SubworldApplication app = ApplicationHolder.getApp();
-            //if (app != null) {
-                sendAppInBackgroundStatus(screenOff);
-            //}
+            sendAppInBackgroundStatus(screenOff);
         }
     }
 }

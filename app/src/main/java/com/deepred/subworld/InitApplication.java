@@ -11,6 +11,7 @@ import android.util.Log;
 import com.deepred.subworld.engine.GameService;
 import com.deepred.subworld.model.User;
 import com.deepred.subworld.notifications.BaseNotificationBuilder;
+import com.deepred.subworld.service.GoogleLocationServiceImpl;
 import com.deepred.subworld.service.LocationService;
 import com.deepred.subworld.utils.ICallbacks;
 import com.deepred.subworld.utils.MyUserManager;
@@ -36,7 +37,7 @@ public class InitApplication extends Activity implements ICallbacks.IUserCallbac
         ApplicationHolder.setApp(app);
 
         if (app.getLocationService() == null) {
-            startService(new Intent(InitApplication.this, LocationService.class));
+            startService(new Intent(this, GoogleLocationServiceImpl.class));
         } else {
             Log.d("InitApplication", "Service already started");
         }
@@ -64,6 +65,7 @@ public class InitApplication extends Activity implements ICallbacks.IUserCallbac
             // Request login or register with the background service
             Intent mServiceIntent = new Intent(this, GameService.class);
             mServiceIntent.setData(Uri.parse(ICommon.LOGIN_REGISTER));
+
             mServiceIntent.putExtra(ICommon.EMAIL, email);
             mServiceIntent.putExtra(ICommon.PASSWORD, password);
             mServiceIntent.putExtra(ICommon.SCREEN_CONTEXT, getLocalClassName());
@@ -73,6 +75,12 @@ public class InitApplication extends Activity implements ICallbacks.IUserCallbac
                     super.onReceiveResult(resultCode, resultData);
                     if (resultCode == RESULT_OK) {
                         Log.d(TAG, "Login OK!");
+
+                        if (app.getLocationService() == null) {
+                            LocationService.setBBDDConnected();
+                        } else {
+                            app.getLocationService().onBBDDConnected();
+                        }
                     } else {
                         Log.d(TAG, "Login failed!");
                         launchLogin();
@@ -104,6 +112,7 @@ public class InitApplication extends Activity implements ICallbacks.IUserCallbac
         startActivity(outI);
 
         extraFromNotification = null;
+        finish();
     }
 
     @Override
@@ -119,5 +128,6 @@ public class InitApplication extends Activity implements ICallbacks.IUserCallbac
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             this.startActivity(intent);
         }
+        finish();
     }
 }

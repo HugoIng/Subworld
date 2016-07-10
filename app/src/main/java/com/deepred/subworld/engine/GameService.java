@@ -13,12 +13,15 @@ import android.util.Log;
 import com.deepred.subworld.ApplicationHolder;
 import com.deepred.subworld.ICommon;
 import com.deepred.subworld.model.MapElement;
+import com.deepred.subworld.model.MapRival;
+import com.deepred.subworld.model.MapTreasure;
 import com.deepred.subworld.model.Treasure;
 import com.deepred.subworld.model.User;
 import com.deepred.subworld.utils.ICallbacks;
 import com.deepred.subworld.utils.IViewRangeListener;
 import com.deepred.subworld.utils.MyUserManager;
 import com.deepred.subworld.views.UserActionActivity;
+import com.firebase.geofire.GeoLocation;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 
 import java.util.ArrayList;
@@ -164,9 +167,9 @@ public class GameService extends IntentService implements IViewRangeListener {
                     public void onLoginOk(boolean wait4User) {
                         Log.v(TAG, "Requesting login on firebase");
 
-                        Intent localIntent = new Intent(ICommon.BBDD_CONNECTED);
+                        /*Intent localIntent = new Intent(ICommon.BBDD_CONNECTED);
                         // Broadcasts the Intent to receivers in this app.
-                        LocalBroadcastManager.getInstance(GameService.this).sendBroadcast(localIntent);
+                        LocalBroadcastManager.getInstance(GameService.this).sendBroadcast(localIntent);*/
 
                         DataManager.getInstance().getUser();
 
@@ -340,6 +343,9 @@ public class GameService extends IntentService implements IViewRangeListener {
     }
 
     private void broadcastMapElementlLocation(String uid, LatLng latLng) {
+        if (latLng == null)
+            return;
+
         Intent localIntent =
                 new Intent(ICommon.MAPELEMENT_LOCATION)
                         // Puts the status into the Intent
@@ -447,20 +453,33 @@ public class GameService extends IntentService implements IViewRangeListener {
         Log.d(TAG, "checkVisibility: " + uid);
 
         final User myUser = MyUserManager.getInstance().getUser();
+
+        // Obtain MapRival
+        MapElement elem = viewRange.getElement(uid);
+
+        // My own user is not inserted in the viewRange list, so do nothing here if elem is not found
+        if (elem == null)
+            return;
+
+        GeoLocation gloc = elem.getLocation();
         Location otherUserLocation = new Location("?");
-        otherUserLocation.setLatitude(loc.getLatitude());
-        otherUserLocation.setLongitude(loc.getLongitude());
+        otherUserLocation.setLatitude(gloc.latitude);
+        otherUserLocation.setLongitude(gloc.longitude);
         final float distance = lastLocation.distanceTo(otherUserLocation);
 
-        // Obtener el usuario de la BBDD
-        DataManager.getInstance().getUser(uid, new ICallbacks.IUserCallbacks() {
-            @Override
-            public void onUserChange(User user) {
-                boolean isVisible = applyVisibilityRules(myUser, user, distance);
-                Log.d(TAG, "checkVisibility returns:" + isVisible);
-                cb.onCompleted(isVisible);
-            }
-        });
+        if (elem instanceof MapRival) {
+            // Obtener el usuario de la BBDD
+            DataManager.getInstance().getUser(uid, new ICallbacks.IUserCallbacks() {
+                @Override
+                public void onUserChange(User user) {
+                    boolean isVisible = applyVisibilityRules(myUser, user, distance);
+                    Log.d(TAG, "checkVisibility returns:" + isVisible);
+                    cb.onCompleted(isVisible);
+                }
+            });
+        } else if (elem instanceof MapTreasure) {
+
+        }
     }
 
     private boolean applyVisibilityRules(User myUser, User otherUser, float distance) {
@@ -473,6 +492,17 @@ public class GameService extends IntentService implements IViewRangeListener {
         int range = calculateDistanceRange(distance);
         return range > -1 && ICommon.distanceTable[tot][range];
     }
+
+   /* private boolean applyVisibilityRules(User myUser, Treasure treasure, float distance) {
+        boolean ret = false;
+        int myWatchingSkill = myUser.getSkills().getWatching().getValue();
+        int otherHidingSkill = treasure.getSkills().getHiding().getValue();
+        int tot = myWatchingSkill - otherHidingSkill;
+        if (tot < 0)
+            tot = 0;
+        int range = calculateDistanceRange(distance);
+        return range > -1 && ICommon.distanceTable[tot][range];*
+    }*/
 
     private int calculateDistanceRange(float distance) {
         Float d = distance;

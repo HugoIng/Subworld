@@ -52,6 +52,7 @@ public abstract class AbstractMapActivity extends AppCompatActivity {
                 // Interact with the map using mapboxMap here
                 map = mapboxMap;
 
+
                 mapReady();
             }
         });

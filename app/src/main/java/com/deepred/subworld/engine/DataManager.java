@@ -269,7 +269,8 @@ class DataManager implements GeoQueryEventListener {
         } else {
             type = ICommon.LOCATION_TYPE_RIVAL;
         }
-        ViewRangeManager.getInstance().add(stripPrefix(id), type, geoLocation, id.equals(uid));
+        String _uid = stripPrefix(id);
+        ViewRangeManager.getInstance().add(_uid, type, geoLocation, _uid.equals(uid));
     }
 
     @Override
@@ -281,7 +282,8 @@ class DataManager implements GeoQueryEventListener {
     @Override
     public void onKeyMoved(String id, GeoLocation geoLocation) {
         Log.d(TAG, "onKeyMoved: " + id);
-        ViewRangeManager.getInstance().add(stripPrefix(id), ICommon.LOCATION_TYPE_RIVAL, geoLocation, id.equals(uid));
+        String _uid = stripPrefix(id);
+        ViewRangeManager.getInstance().add(_uid, ICommon.LOCATION_TYPE_RIVAL, geoLocation, _uid.equals(uid));
     }
 
     private String stripPrefix(String id) {
@@ -291,7 +293,7 @@ class DataManager implements GeoQueryEventListener {
         } else {
             prefix = ICommon.GEO_USR_PREFIX;
         }
-        return id.substring(prefix.length() - 1);
+        return id.substring(prefix.length());
     }
 
     @Override

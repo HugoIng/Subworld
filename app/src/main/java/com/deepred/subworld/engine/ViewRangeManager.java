@@ -57,6 +57,10 @@ public class ViewRangeManager {
 
     public float getZoom() { return zoom; }
 
+    public MapElement getElement(String uid) {
+        return elems.get(uid);
+    }
+
     /*
     * Request an update to the DDBB with the new user position
      */

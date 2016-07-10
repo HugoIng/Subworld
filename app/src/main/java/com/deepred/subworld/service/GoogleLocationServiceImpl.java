@@ -27,7 +27,7 @@ import com.google.android.gms.location.LocationServices;
  */
 public class GoogleLocationServiceImpl extends LocationService implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
 
-    private final static String TAG = "GoogleLocationSrvImpl";
+    private final static String TAG = "GoogleLocationService";
 
     // Google Location API
     private GoogleApiClient mGoogleApiClient;

@@ -25,6 +25,11 @@ public class ICommon {
     public static final String GEO_USR_PREFIX = "usr_";
     public static final String GEO_TREASURE_PREFIX = "tre_";
 
+    public static final String GEO_ARCH_PREFIX = "arc_";
+    public static final String GEO_FORT_PREFIX = "for_";
+    public static final String GEO_SPY_PREFIX = "spy_";
+    public static final String GEO_THIEF_PREFIX = "thi_";
+
 
 
     // Characters
@@ -165,7 +170,7 @@ public class ICommon {
     public static final String MAPELEMENT_TYPE = "mapelement_type";
     // Custom broadcasts sent to StatusReceiver
     public static final String BACKGROUND_STATUS = "background_status";
-    public static final String BBDD_CONNECTED = "bbdd_connected";
+    //public static final String BBDD_CONNECTED = "bbdd_connected";
     public static float[] EvolutionFactorValues = {1.0f, 0.75f, 0.5f, 0.33f};
     // Matriz con 4 filas, una por cada tipo de personaje
     // Las columnas son cada una de las habilidades

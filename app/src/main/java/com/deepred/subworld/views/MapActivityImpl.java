@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.Gravity;
 import android.widget.ImageView;
@@ -64,7 +65,8 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
         filter.addAction(ICommon.REMOVE_MAPELEMENT_LOCATION);
         filter.addAction(ICommon.SET_ZOOM);
         filter.addAction(ICommon.SET_PROVIDER_INFO);
-        registerReceiver(serviceReceiver, filter);
+        //registerReceiver(serviceReceiver, filter);
+        LocalBroadcastManager.getInstance(this).registerReceiver(serviceReceiver, filter);
     }
 
     @Override
@@ -143,9 +145,9 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
             IconFactory iconFactory = IconFactory.getInstance(this);
             Drawable iconDrawable;
             if (type == ICommon.LOCATION_TYPE_TREASURE) {
-                iconDrawable = ContextCompat.getDrawable(this, R.drawable.arrow_smaller);
+                iconDrawable = ContextCompat.getDrawable(this, R.drawable.markers1);
             } else {
-                iconDrawable = ContextCompat.getDrawable(this, R.drawable.arrow_smaller);
+                iconDrawable = ContextCompat.getDrawable(this, R.drawable.markers2);
             }
             Icon icon = iconFactory.fromDrawable(iconDrawable);
 
@@ -220,13 +222,13 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
             if (map != null) {
                 // Create an Icon object for the marker to use
                 IconFactory iconFactory = IconFactory.getInstance(this);
-                Drawable iconDrawable = ContextCompat.getDrawable(this, R.drawable.arrow_smaller);
-                //Icon icon = iconFactory.fromDrawable(iconDrawable);
+                Drawable iconDrawable = ContextCompat.getDrawable(this, R.drawable.markers3);
+                Icon icon = iconFactory.fromDrawable(iconDrawable);
 
                 myMark = new MarkerOptions()
                         .position(latLng)
                         .title("Me")
-                        //.icon(icon)
+                        .icon(icon)
                         .snippet("my marker");
 
                 runOnUiThread(new Runnable() {

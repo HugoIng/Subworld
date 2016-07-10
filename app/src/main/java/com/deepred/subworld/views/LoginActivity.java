@@ -206,6 +206,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderManager.Lo
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             this.startActivity(intent);
         }
+        finish();
     }
 
     private void populateAutoComplete() {
@@ -343,13 +344,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderManager.Lo
 
         mEmailView.setAdapter(adapter);
     }
-
-    /*public interface ILoginCallbacks {
-        public void onLoginOk(boolean wait4User);
-
-        public void onLoginError();
-    }*/
-
 
     private interface ProfileQuery {
         String[] PROJECTION = {
