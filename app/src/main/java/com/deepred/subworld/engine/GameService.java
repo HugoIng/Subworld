@@ -51,15 +51,13 @@ public class GameService extends IntentService implements IViewRangeListener {
     private ArrayList<String> removesPending = new ArrayList<>();
     private boolean hasZoomPending = false;
     private float zoomPending;
-    private boolean hasProvPending = false;
-    private boolean provPending;
 
     public GameService() {
         super(TAG);
         lastLocation = null;
         mapActivityIsResumed = false;
         viewRange = ViewRangeManager.getInstance();
-        viewRange.setServiceContext(this);
+        viewRange.setContext(this);
     }
 
     @Override
@@ -90,56 +88,6 @@ public class GameService extends IntentService implements IViewRangeListener {
 
                 break;
             }
-            case ICommon.MAP_ACTIVITY_RESUMED:
-            /*
-            * Map activity just resumed
-             */
-                mapActivityIsResumed = true;
-
-                if (hasMyLocationPending) {
-                    // Broadcast my location
-                    broadcastLocation(lastLocation);
-                    hasMyLocationPending = false;
-                }
-
-                if (hasLocationsPending) {
-                    for (String uid : locsPending.keySet()) {
-                        // Broadcast rivals locations
-                        broadcastMapElementlLocation(uid, locsPending.get(uid));
-                        locsPending.remove(uid);
-                    }
-                    hasLocationsPending = false;
-                }
-
-                if (hasRemovesPending) {
-                    for (String uid : removesPending) {
-                        // Remove rivals from map
-                        broadcastRemoveMapElement(uid);
-                        removesPending.remove(uid);
-                    }
-                    hasRemovesPending = false;
-                }
-
-                if (hasZoomPending) {
-                    // Broadcast zoom change
-                    broadcastZoom(zoomPending);
-                    hasZoomPending = false;
-                }
-
-                if (hasProvPending) {
-                    // Broadcast provider change
-                    broadcastProvider(provPending);
-                    hasProvPending = false;
-                }
-
-                break;
-            case ICommon.MAP_ACTIVITY_PAUSED:
-            /*
-            * Map activity just paused
-             */
-                mapActivityIsResumed = false;
-
-                break;
             case ICommon.SET_BACKGROUND_STATUS: {
             /*
             *
@@ -149,7 +97,40 @@ public class GameService extends IntentService implements IViewRangeListener {
                     return;
                 }
                 boolean status = bundle.getBoolean(ICommon.SET_BACKGROUND_STATUS);
+
+                if (!status) {
+                    if (hasMyLocationPending) {
+                        // Broadcast my location
+                        broadcastLocation(lastLocation);
+                        hasMyLocationPending = false;
+                    }
+
+                    if (hasLocationsPending) {
+                        for (String uid : locsPending.keySet()) {
+                            // Broadcast rivals locations
+                            broadcastMapElementlLocation(uid, locsPending.get(uid));
+                            locsPending.remove(uid);
+                        }
+                        hasLocationsPending = false;
+                    }
+
+                    if (hasRemovesPending) {
+                        for (String uid : removesPending) {
+                            // Remove rivals from map
+                            broadcastRemoveMapElement(uid);
+                            removesPending.remove(uid);
+                        }
+                        hasRemovesPending = false;
+                    }
+
+                    if (hasZoomPending) {
+                        // Broadcast zoom change
+                        broadcastZoom(zoomPending);
+                        hasZoomPending = false;
+                    }
+                }
                 changeBackgroundState(status);
+
                 break;
             }
             case ICommon.LOGIN_REGISTER:
@@ -321,13 +302,8 @@ public class GameService extends IntentService implements IViewRangeListener {
 
      */
     private void updateProvider(boolean status) {
-        if (mapActivityIsResumed) {
             // Broadcast provider status
             broadcastProvider(status);
-        } else {
-            provPending = status;
-            hasProvPending = true;
-        }
     }
 
     /*
@@ -455,7 +431,7 @@ public class GameService extends IntentService implements IViewRangeListener {
         final User myUser = MyUserManager.getInstance().getUser();
 
         // Obtain MapRival
-        MapElement elem = viewRange.getElement(uid);
+        MapElement elem = viewRange.getMapElement(uid);
 
         // My own user is not inserted in the viewRange list, so do nothing here if elem is not found
         if (elem == null)

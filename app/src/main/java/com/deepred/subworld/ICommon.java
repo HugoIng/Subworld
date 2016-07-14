@@ -121,7 +121,7 @@ public class ICommon {
     public static final int RANGE_VARIATION = 100; // In meters
     public static final int MIN_RANGE = 40; // In meters
     public static final int SMALL_RANGE_VARIATION = 10; // In meters
-    public static final int DISABLE_GPS_IF_NO_LOCATIONS_AFTER = 10000; // Milliseconds
+    public static final int DISABLE_GPS_IF_NO_LOCATIONS_AFTER = 20000; // Milliseconds
     // Distance tables
     public static final int DISTANCE_RANGE_0 = 10; // In meters
     public static final int DISTANCE_RANGE_1 = 20; // In meters
@@ -151,8 +151,6 @@ public class ICommon {
     };
     // IntentService velues received by GameService
     public static final String NEW_LOCATION_FROM_SRV = "new_location_from_srv";
-    public static final String MAP_ACTIVITY_RESUMED = "map_activity_resumed";
-    public static final String MAP_ACTIVITY_PAUSED = "map_activity_paused";
     public static final String SET_BACKGROUND_STATUS = "get_background_status";
     public static final String LOGIN_REGISTER = "login_register";
     public static final String CHECK_NAME = "check_name";
@@ -169,7 +167,7 @@ public class ICommon {
     public static final String UID = "uid";
     public static final String MAPELEMENT_TYPE = "mapelement_type";
     // Custom broadcasts sent to StatusReceiver
-    public static final String BACKGROUND_STATUS = "background_status";
+    public static final String SET_GPS_STATUS = "set_gps_status";
     //public static final String BBDD_CONNECTED = "bbdd_connected";
     public static float[] EvolutionFactorValues = {1.0f, 0.75f, 0.5f, 0.33f};
     // Matriz con 4 filas, una por cada tipo de personaje

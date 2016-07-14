@@ -7,7 +7,6 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -23,7 +22,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 /**
- * Created by aplicaty on 22/06/16.
+ *
  */
 public class GoogleLocationServiceImpl extends LocationService implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
 
@@ -32,12 +31,10 @@ public class GoogleLocationServiceImpl extends LocationService implements Google
     // Google Location API
     private GoogleApiClient mGoogleApiClient;
 
-    //private LocationService srv;
-    private GameService gm;
+    private boolean connected; // Coneccted to GoogleAPI
+    private boolean started; // Has started requesting locations?
+    private boolean gpsMode; // Real gpsMode in use
 
-    private boolean connected;
-    private boolean started;
-    private boolean gpsMode;
     private Location lastLocation;
 
     @Override
@@ -74,39 +71,11 @@ public class GoogleLocationServiceImpl extends LocationService implements Google
         mGoogleApiClient.disconnect();
     }
 
-
-    public void switchProvider(boolean useGps) {
-        Log.d(TAG, "SwitchProvider: use GPS:" + useGps);
-        requiredGpsMode = useGps;
-
-        if (!isConnectedBBDD)
-            return;
-
-        if(!connected)
-            return;
-
-        if (isRequiredGpsMode() == gpsMode && started)
-            return;
-
-        stopLocationUpdates();
-
-        // Si aun no hemos obtenido una localizacion, mantenemos low precission
-        if (useGps && lastLocation != null && lastLocation.getTime() != 0) {
-            requestLocationUpdates(true);
-        } else {
-            requestLocationUpdates(false);
-        }
-
-        started = true;
-    }
-
     public boolean isStarted() {
         return started;
     }
 
-    /*public boolean isGpsMode() {
-        return gpsMode;
-    }*/
+
 
     //Android Location methods
     private void requestLocationUpdates(boolean useGps) {
@@ -165,7 +134,11 @@ public class GoogleLocationServiceImpl extends LocationService implements Google
     @Override
     public void onConnected(Bundle bundle) {
         connected = true;
-        onLocImplConnected();
+        //onLocImplConnected();
+        if (isConnectedBBDD) {
+            //updateBackgroundStatus();
+            evaluateGps();
+        }
     }
 
     @Override
@@ -186,13 +159,14 @@ public class GoogleLocationServiceImpl extends LocationService implements Google
         sendLastLocation();
 
         // After 15 seconds, if no location is retrieved, go back to LOW_PRECISSION mode.
-        Handler handler = new Handler();
+        /*Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             public void run() {
-                if (loc.getTime() > System.currentTimeMillis() - ICommon.DISABLE_GPS_IF_NO_LOCATIONS_AFTER)
+                if (lastLocation.getTime() > System.currentTimeMillis() - ICommon.DISABLE_GPS_IF_NO_LOCATIONS_AFTER)
+                    Log.d(TAG, "Gps desabilitado por obsolescencia");
                     switchProvider(false);
             }
-        }, ICommon.DISABLE_GPS_IF_NO_LOCATIONS_AFTER);
+        }, ICommon.DISABLE_GPS_IF_NO_LOCATIONS_AFTER);*/
     }
 
 
@@ -236,5 +210,48 @@ public class GoogleLocationServiceImpl extends LocationService implements Google
 
         // Showing Alert Message
         alertDialog.show();
+    }
+
+
+    public void evaluateGps() {
+
+        if (!started) {
+            switchProvider(true);
+        } else {
+            if (handler.isAppInBackground()) {
+                // Si estamos en background y el GPS esta activo, lo cambiamos a NETWORK
+                if (gpsMode) {
+                    switchProvider(false);
+                }
+            } else {
+                if (requiredGpsMode != gpsMode)
+                    switchProvider(requiredGpsMode);
+            }
+        }
+    }
+
+    private void switchProvider(boolean useGps) {
+        Log.d(TAG, "SwitchProvider: use GPS:" + useGps);
+        setRequiredGpsMode(useGps);
+
+        if (!isConnectedBBDD)
+            return;
+
+        if (!connected)
+            return;
+
+        if (isRequiredGpsMode() == gpsMode && started)
+            return;
+
+        stopLocationUpdates();
+
+        // Si aun no hemos obtenido una localizacion, mantenemos low precission
+        if (useGps && lastLocation != null && lastLocation.getTime() != 0) {
+            requestLocationUpdates(true);
+        } else {
+            requestLocationUpdates(false);
+        }
+
+        started = true;
     }
 }

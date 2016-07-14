@@ -69,22 +69,6 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
         LocalBroadcastManager.getInstance(this).registerReceiver(serviceReceiver, filter);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        Intent mServiceIntent = new Intent(this, GameService.class);
-        mServiceIntent.setData(Uri.parse(ICommon.MAP_ACTIVITY_RESUMED));
-        startService(mServiceIntent); // Starts the IntentService
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Intent mServiceIntent = new Intent(this, GameService.class);
-        mServiceIntent.setData(Uri.parse(ICommon.MAP_ACTIVITY_PAUSED));
-        startService(mServiceIntent); // Starts the IntentService
-    }
-
     public void mapReady() {
         Log.d(TAG, "Map is ready");
 

@@ -27,15 +27,7 @@ public abstract class LocationService extends Service {
     protected static boolean requiredGpsMode = false;
     protected static boolean isConnectedBBDD = false; // Flag indicating BBDD conection is OK
 
-    private StatusReceiver handler;
-
-    /*
-    * Static method to be used when the app starts before the service does
-     */
-    public static void setProvider(boolean useGPS) {
-        Log.d(TAG, "Static switchProvider: use GPS:" + useGPS);
-        requiredGpsMode = useGPS;
-    }
+    protected StatusReceiver handler;
 
     /*
     * Static method to be used when the app starts before the service does
@@ -58,8 +50,7 @@ public abstract class LocationService extends Service {
         // Register receiver that handles screen on and screen off logic and background state
         IntentFilter filter = new IntentFilter(Intent.ACTION_SCREEN_ON);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
-        filter.addAction(ICommon.BACKGROUND_STATUS);
-        //filter.addAction(ICommon.BBDD_CONNECTED);
+        filter.addAction(ICommon.SET_GPS_STATUS);
         registerReceiver(handler, filter);
         registerComponentCallbacks(handler);
 
@@ -67,7 +58,7 @@ public abstract class LocationService extends Service {
 
         ApplicationHolder.getApp().setLocationService(this, handler);
 
-        getBackgroundStatus();
+        evaluateGps();
     }
 
     @Override
@@ -76,10 +67,7 @@ public abstract class LocationService extends Service {
         return android.app.Service.START_STICKY;
     }
 
-    /*
-    * Request locations and set mode
-     */
-    public abstract void switchProvider(boolean useGPS);
+    public abstract void evaluateGps();
 
     protected abstract boolean isStarted();
 
@@ -90,26 +78,20 @@ public abstract class LocationService extends Service {
      */
     public void onBBDDConnected() {
         isConnectedBBDD = true;
-        if (!isStarted())
-            getBackgroundStatus();
-    }
-
-    /*
-    * Called when Google Location APIs connect successfully.
-    * Init with app's status back/foreground
-     */
-    protected void onLocImplConnected () {
-        if(isConnectedBBDD)
-            getBackgroundStatus();
+        if (!isStarted()) {
+            evaluateGps();
+        }
     }
 
     protected boolean isRequiredGpsMode() {
         return requiredGpsMode;
     }
 
-    private void getBackgroundStatus() {
-        boolean status = handler.isAppInBackground();
-        switchProvider(status);
+    /*
+    * Static method to be used when the app starts before the service does
+     */
+    public static void setRequiredGpsMode(boolean useGPS) {
+        requiredGpsMode = useGPS;
     }
 
     public class LocalBinder extends Binder {

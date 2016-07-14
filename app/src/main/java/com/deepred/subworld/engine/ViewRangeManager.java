@@ -51,15 +51,10 @@ public class ViewRangeManager {
         return localInstance;
     }
 
-    public void setServiceContext(GameService ctx) {
+    public void setContext(GameService ctx) {
         gm = ctx;
     }
 
-    public float getZoom() { return zoom; }
-
-    public MapElement getElement(String uid) {
-        return elems.get(uid);
-    }
 
     /*
     * Request an update to the DDBB with the new user position
@@ -98,9 +93,9 @@ public class ViewRangeManager {
                 // Switch from GPS a Network
                 Log.d(TAG, "Performing range checks: switch to low precission (gps off)");
 
-                Intent localIntent = new Intent(ICommon.BACKGROUND_STATUS)
+                Intent localIntent = new Intent(ICommon.SET_GPS_STATUS)
                                 // Puts the status into the Intent
-                                .putExtra(ICommon.BACKGROUND_STATUS, false);
+                        .putExtra(ICommon.SET_GPS_STATUS, false);
                 // Broadcasts the Intent to receivers in this app.
                 LocalBroadcastManager.getInstance(gm).sendBroadcast(localIntent);
 
@@ -236,6 +231,10 @@ public class ViewRangeManager {
 
     public MapElement getMapElement(String _uid) {
         return elems.get(_uid);
+    }
+
+    public float getZoom() {
+        return zoom;
     }
 
     public interface IVisibilityCompletionListener {
