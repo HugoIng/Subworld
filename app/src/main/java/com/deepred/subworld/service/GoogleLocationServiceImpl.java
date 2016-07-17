@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 
@@ -26,7 +27,7 @@ import com.google.android.gms.location.LocationServices;
  */
 public class GoogleLocationServiceImpl extends LocationService implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
 
-    private final static String TAG = "GoogleLocationService";
+    private final static String TAG = "SW SERVICE GoogleLocSrv";
 
     // Google Location API
     private GoogleApiClient mGoogleApiClient;
@@ -37,12 +38,17 @@ public class GoogleLocationServiceImpl extends LocationService implements Google
 
     private Location lastLocation;
 
+    //TODO
+    private long lastModeChangeTimestamp;
+    private boolean hasRetrievedLocationsSinceLastModeChange;
+
     @Override
     public void onCreate() {
         super.onCreate();
         started = false;
         connected = false;
         gpsMode = false;
+        hasRetrievedLocationsSinceLastModeChange = false;
 
         // Create an instance of GoogleAPIClient.
         if (mGoogleApiClient == null) {
@@ -171,6 +177,7 @@ public class GoogleLocationServiceImpl extends LocationService implements Google
 
 
     private void sendLastLocation() {
+        Log.d(TAG, "Sending location: " + lastLocation.toString());
         Intent mServiceIntent = new Intent(this, GameService.class);
         mServiceIntent.setData(Uri.parse(ICommon.NEW_LOCATION_FROM_SRV));
         mServiceIntent.putExtra(ICommon.NEW_LOCATION_FROM_SRV, lastLocation);
@@ -213,7 +220,7 @@ public class GoogleLocationServiceImpl extends LocationService implements Google
     }
 
 
-    public void evaluateGps() {
+    protected void evaluateGps() {
 
         if (!started) {
             switchProvider(true);
@@ -231,8 +238,7 @@ public class GoogleLocationServiceImpl extends LocationService implements Google
     }
 
     private void switchProvider(boolean useGps) {
-        Log.d(TAG, "SwitchProvider: use GPS:" + useGps);
-        setRequiredGpsMode(useGps);
+        requiredGpsMode = useGps;
 
         if (!isConnectedBBDD)
             return;
@@ -240,17 +246,28 @@ public class GoogleLocationServiceImpl extends LocationService implements Google
         if (!connected)
             return;
 
-        if (isRequiredGpsMode() == gpsMode && started)
+        if (requiredGpsMode == gpsMode && started)
             return;
+
+        Log.d(TAG, "SwitchProvider: use GPS:" + useGps);
 
         stopLocationUpdates();
 
         // Si aun no hemos obtenido una localizacion, mantenemos low precission
+        boolean activateGPS;
         if (useGps && lastLocation != null && lastLocation.getTime() != 0) {
-            requestLocationUpdates(true);
+            activateGPS = true;
         } else {
-            requestLocationUpdates(false);
+            activateGPS = false;
         }
+
+        requestLocationUpdates(activateGPS);
+
+        Intent localIntent = new Intent(ICommon.SET_PROVIDER_INFO)
+                // Puts the status into the Intent
+                .putExtra(ICommon.SET_PROVIDER_INFO, activateGPS);
+        // Broadcasts the Intent to receivers in this app.
+        LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
 
         started = true;
     }

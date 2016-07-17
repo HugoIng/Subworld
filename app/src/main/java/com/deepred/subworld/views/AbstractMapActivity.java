@@ -18,9 +18,9 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
 public abstract class AbstractMapActivity extends AppCompatActivity {
 
+    private final static String TAG = "SW VIEWS AbstractMapAct";
     protected DrawerLayout drawer;
     protected MapboxMap map;
-    private String TAG = "AbstractMapActivity";
     private RecyclerView mRecyclerView;                           // Declaring RecyclerView
     private RecyclerView.Adapter mAdapter;                        // Declaring Adapter For Recycler View
     private RecyclerView.LayoutManager mLayoutManager;            // Declaring Layout Manager as a linear layout manager

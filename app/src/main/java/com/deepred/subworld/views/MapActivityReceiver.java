@@ -13,6 +13,7 @@ import com.mapbox.mapboxsdk.geometry.LatLng;
  * Created by aplicaty on 25/06/16.
  */
 public class MapActivityReceiver extends BroadcastReceiver {
+    private final static String TAG = "SW VIEWS MapActivityRcv";
     private MapActivityImpl act;
 
     public MapActivityReceiver(MapActivityImpl _act) {
@@ -30,6 +31,7 @@ public class MapActivityReceiver extends BroadcastReceiver {
                     return;
                 }
                 Location loc = bundle.getParcelable(ICommon.MY_LOCATION);
+
                 act.updateMyMarker(loc);
                 break;
             }

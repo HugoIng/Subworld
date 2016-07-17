@@ -31,8 +31,8 @@ import com.deepred.subworld.utils.MyUserManager;
  */
 public class CharactersSelectionActivity extends AppCompatActivity implements ICallbacks.IUserCallbacks {
 
+    private final static String TAG = "SW VIEWS ChrSelectAct  ";
     int chr_selected = ICommon.CHRS_NOT_SET;
-    String TAG = "CharacterSelectionActivity";
     ImageButton arch;
     ImageButton fort;
     ImageButton spy ;

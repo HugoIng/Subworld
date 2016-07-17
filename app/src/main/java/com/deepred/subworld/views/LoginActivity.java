@@ -47,7 +47,7 @@ import static android.Manifest.permission.READ_CONTACTS;
  *
  */
 public class LoginActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, ICallbacks.IUserCallbacks {
-    public static final String TAG = "LoginActivity";
+    private static final String TAG = "SW VIEWS LoginActivity ";
 
     /**
      * Id to identity READ_CONTACTS permission request.

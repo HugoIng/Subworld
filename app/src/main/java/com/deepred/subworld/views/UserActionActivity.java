@@ -9,7 +9,7 @@ import com.deepred.subworld.ICommon;
 import com.deepred.subworld.R;
 
 public class UserActionActivity extends AppCompatActivity {
-    private static final String TAG = "InitAplication";
+    private static final String TAG = "SW VIEWS UserActionAct ";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

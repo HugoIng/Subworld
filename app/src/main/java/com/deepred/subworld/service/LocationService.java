@@ -22,7 +22,7 @@ import com.deepred.subworld.ICommon;
  */
 public abstract class LocationService extends Service {
 
-    private final static String TAG = "LocationService";
+    private final static String TAG = "SW SERVICE LocationSrv ";
 
     protected static boolean requiredGpsMode = false;
     protected static boolean isConnectedBBDD = false; // Flag indicating BBDD conection is OK
@@ -35,6 +35,17 @@ public abstract class LocationService extends Service {
     public static void setBBDDConnected() {
         isConnectedBBDD = true;
     }
+
+    /*
+    * Static method to be used when the app starts before the service does
+     */
+    protected static void setRequiredGpsMode(boolean useGPS) {
+        requiredGpsMode = useGPS;
+    }
+
+    protected abstract void evaluateGps();
+
+    protected abstract boolean isStarted();
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -67,10 +78,6 @@ public abstract class LocationService extends Service {
         return android.app.Service.START_STICKY;
     }
 
-    public abstract void evaluateGps();
-
-    protected abstract boolean isStarted();
-
     /*
     * Called when connection to firebase succeeds.
     * If the location service is prepared but not started, start collecting locations
@@ -81,17 +88,6 @@ public abstract class LocationService extends Service {
         if (!isStarted()) {
             evaluateGps();
         }
-    }
-
-    protected boolean isRequiredGpsMode() {
-        return requiredGpsMode;
-    }
-
-    /*
-    * Static method to be used when the app starts before the service does
-     */
-    public static void setRequiredGpsMode(boolean useGPS) {
-        requiredGpsMode = useGPS;
     }
 
     public class LocalBinder extends Binder {

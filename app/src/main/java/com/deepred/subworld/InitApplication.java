@@ -23,7 +23,7 @@ import com.deepred.subworld.views.MapActivityImpl;
  * Created by aplicaty on 25/02/16.
  */
 public class InitApplication extends Activity implements ICallbacks.IUserCallbacks {
-    private static final String TAG = "InitAplication";
+    private static final String TAG = "SW InitAplication      ";
     private SubworldApplication app;
     private Bundle extraFromNotification = null;
     private SharedPreferences prefs;

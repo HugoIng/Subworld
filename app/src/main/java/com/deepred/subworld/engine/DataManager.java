@@ -25,9 +25,9 @@ import java.util.Map;
  * Created by aplicaty on 25/02/16.
  */
 class DataManager implements GeoQueryEventListener {
+    private final static String TAG = "SW ENGINE DataManager  ";
     private static volatile DataManager INSTANCE;
     private static Object obj = new Object();
-    private String TAG = "DataManager";
     private Firebase dbRef = null;
     private GeoFire dbGeoRef = null;
     private GeoQuery geoQuery;
@@ -38,6 +38,7 @@ class DataManager implements GeoQueryEventListener {
         Firebase.setAndroidContext(ApplicationHolder.getApp().getApplicationContext());
         dbRef = new Firebase(ICommon.FIREBASE_REF);
         dbGeoRef = new GeoFire(new Firebase(ICommon.GEO_FIRE_REF));
+        geoQuery = null;
     }
 
     static DataManager getInstance(){
@@ -198,7 +199,7 @@ class DataManager implements GeoQueryEventListener {
         rad is actual range radius in kilometers
      */
     void queryLocations(final Location l, final double rad) {
-        Log.d(TAG, "QueryLocations");
+        Log.d(TAG, "QueryLocations for location:" + l.getLatitude() + "," + l.getLongitude() + " (" + l.getProvider() +  ")");
         if(uid == null)
             return;
 
@@ -212,7 +213,7 @@ class DataManager implements GeoQueryEventListener {
 
                     if (geoQuery == null) {
                         geoQuery = dbGeoRef.queryAtLocation(new GeoLocation(l.getLatitude(), l.getLongitude()), rad);
-                        geoQuery.addGeoQueryEventListener(DataManager.getInstance());
+                        geoQuery.addGeoQueryEventListener(INSTANCE);
                     } else {
                         geoQuery.setCenter(new GeoLocation(l.getLatitude(), l.getLongitude()));
                         geoQuery.setRadius(rad);

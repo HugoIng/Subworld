@@ -7,6 +7,7 @@ import android.util.Log;
 
 import com.deepred.subworld.ICommon;
 import com.deepred.subworld.model.MapElement;
+import com.deepred.subworld.model.MapRival;
 import com.firebase.geofire.GeoLocation;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 
@@ -20,7 +21,7 @@ import java.util.List;
  */
 public class ViewRangeManager {
 
-    private final static String TAG = "RangeManager";
+    private final static String TAG = "SW ENGINE RangeManager ";
     private static Object lock = new Object();
     private static volatile ViewRangeManager instance = null;
     private GameService gm;
@@ -122,10 +123,10 @@ public class ViewRangeManager {
                 previousUsersToBeRemoved.addAll(elems.getKeys());
             }
 
-            Location loc = new Location("?");
+            /*Location loc = new Location("?");
             loc.setLatitude(myLocation.latitude);
             loc.setLongitude(myLocation.longitude);
-            update(loc);
+            update(loc);*/
             // Adjust zoom
             setZoom();
         }
@@ -138,7 +139,7 @@ public class ViewRangeManager {
             myLocation = g;
 
             // Comprueba la visibilidad de los otros usuarios al cambiar mi posicion
-            refreshUsersVisibility();
+            refreshElementsVisibility();
 
             gm.updateMyLocation();
         } else {
@@ -152,7 +153,7 @@ public class ViewRangeManager {
                 }
             }
 
-            // Check visibilidad
+           /* // Check visibilidad
             gm.checkVisibility(uid, new LatLng(g.latitude, g.longitude), new IVisibilityCompletionListener() {
                 @Override
                 public void onCompleted(boolean isVisible) {
@@ -169,8 +170,44 @@ public class ViewRangeManager {
                         gm.removeMapElementLocation(uid);
                     }
                 }
-            });
+            });*/
+
+            elems.put(uid, g, type, false);
+
+            checkElementVisibility(uid);
         }
+    }
+
+    private void refreshElementsVisibility() {
+        Log.d(TAG, "refreshElementsVisibility");
+        for (String uid : elems.getKeys()) {
+            checkElementVisibility(uid);
+        }
+    }
+
+    private void checkElementVisibility(final String uid) {
+        Log.d(TAG, "checkElementVisibility: " + uid);
+
+        gm.checkVisibility(uid, new IVisibilityCompletionListener() {
+            @Override
+            public void onCompleted(boolean isVisible) {
+                MapElement u = elems.get(uid);
+                if (isVisible != u.isVisible()) {
+                    Log.d(TAG, "checkElementVisibility: Applying visibility change!!!");
+                    u.setVisible(isVisible);
+                    if (isVisible) {
+                        // Lo pinto
+                        int tipo = (u instanceof MapRival) ? ICommon.LOCATION_TYPE_RIVAL : ICommon.LOCATION_TYPE_TREASURE;
+                        GeoLocation g = u.getLocation();
+                        LatLng loc = new LatLng(g.latitude, g.longitude);
+                        gm.updateMapElementLocation(uid, tipo, loc);
+                    } else {
+                        // Ya no se ve, lo borro.
+                        gm.removeMapElementLocation(uid);
+                    }
+                }
+            }
+        });
     }
 
     public void remove(String uid) {
@@ -193,40 +230,6 @@ public class ViewRangeManager {
     private float rangeToZoomLevel() {
         Double d  = Math.log(16384000.0f/actualRange)/Math.log(2.0f);
         return d.floatValue();
-    }
-
-    private void refreshUsersVisibility() {
-        Log.d(TAG, "refreshUsersVisibility");
-        for (String uid : elems.getKeys()) {
-            checkUserVisibility(uid);
-        }
-    }
-
-    private void checkUserVisibility(final String uid) {
-        Log.d(TAG, "checkUserVisibility: " + uid);
-        final MapElement u = elems.get(uid);
-        GeoLocation g = u.getLocation();
-        final LatLng loc = new LatLng(g.latitude, g.longitude);
-
-        gm.checkVisibility(uid, loc, new IVisibilityCompletionListener() {
-
-            @Override
-            public void onCompleted(boolean isVisible) {
-                u.setVisible(isVisible);
-
-                if (isVisible != u.isVisible()) {
-                    if (isVisible) {
-                        // Lo pinto
-                        gm.updateMyLocation();
-                    } else {
-                        // Ya no se ve, lo borro.
-                        gm.removeMapElementLocation(uid);
-                    }
-                }
-
-                u.setVisible(isVisible);
-            }
-        });
     }
 
     public MapElement getMapElement(String _uid) {

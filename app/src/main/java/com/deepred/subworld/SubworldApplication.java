@@ -13,7 +13,7 @@ import com.deepred.subworld.utils.OnBackPressed;
  * Created by aplicaty on 25/02/16.
  */
 public class SubworldApplication extends MultiDexApplication {
-    private static final String TAG = "SubworldApplication";
+    private static final String TAG = "SW SubworldApplication ";
     private SharedPreferences preferences;
 
     private LocationService locationService;

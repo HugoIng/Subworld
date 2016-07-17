@@ -35,27 +35,30 @@ import java.util.Map;
 public class GameService extends IntentService implements IViewRangeListener {
 
     private static final int TWO_MINUTES = 1000 * 60 * 2;
-    private static String TAG = "GameService";
+    private final static String TAG = "SW ENGINE GameService  ";
 
     // User location
     private Location lastLocation;
-    private boolean mapActivityIsResumed;
+    private boolean mapActivityIsInBackground;
 
     private ViewRangeManager viewRange;
 
     // Pending locations, etc.
     private boolean hasMyLocationPending = false;
     private boolean hasLocationsPending = false;
-    private Map<String, LatLng> locsPending = new HashMap<>();
+    private Map<String, LatLng> locsPendingRivals = new HashMap<>();
+    private Map<String, LatLng> locsPendingTreasures = new HashMap<>();
     private boolean hasRemovesPending = false;
     private ArrayList<String> removesPending = new ArrayList<>();
     private boolean hasZoomPending = false;
     private float zoomPending;
+    private boolean hasProvPending = false;
+    private boolean provPending;
 
     public GameService() {
         super(TAG);
         lastLocation = null;
-        mapActivityIsResumed = false;
+        mapActivityIsInBackground = false;
         viewRange = ViewRangeManager.getInstance();
         viewRange.setContext(this);
     }
@@ -96,9 +99,9 @@ public class GameService extends IntentService implements IViewRangeListener {
                 if (bundle == null) {
                     return;
                 }
-                boolean status = bundle.getBoolean(ICommon.SET_BACKGROUND_STATUS);
+                mapActivityIsInBackground = bundle.getBoolean(ICommon.SET_BACKGROUND_STATUS);
 
-                if (!status) {
+                if (!mapActivityIsInBackground) {
                     if (hasMyLocationPending) {
                         // Broadcast my location
                         broadcastLocation(lastLocation);
@@ -106,10 +109,15 @@ public class GameService extends IntentService implements IViewRangeListener {
                     }
 
                     if (hasLocationsPending) {
-                        for (String uid : locsPending.keySet()) {
+                        for (String uid : locsPendingRivals.keySet()) {
                             // Broadcast rivals locations
-                            broadcastMapElementlLocation(uid, locsPending.get(uid));
-                            locsPending.remove(uid);
+                            broadcastMapElementlLocation(uid, ICommon.LOCATION_TYPE_RIVAL, locsPendingRivals.get(uid));
+                            locsPendingRivals.remove(uid);
+                        }
+                        for (String uid : locsPendingTreasures.keySet()) {
+                            // Broadcast rivals locations
+                            broadcastMapElementlLocation(uid, ICommon.LOCATION_TYPE_TREASURE, locsPendingTreasures.get(uid));
+                            locsPendingTreasures.remove(uid);
                         }
                         hasLocationsPending = false;
                     }
@@ -129,7 +137,7 @@ public class GameService extends IntentService implements IViewRangeListener {
                         hasZoomPending = false;
                     }
                 }
-                changeBackgroundState(status);
+                //changeBackgroundState(mapActivityIsInBackground); No hay que hacerlo aqui entra en un bucle infinito
 
                 break;
             }
@@ -257,7 +265,7 @@ public class GameService extends IntentService implements IViewRangeListener {
 
     @Override
     public void updateMyLocation() {
-        if (mapActivityIsResumed) {
+        if (!mapActivityIsInBackground) {
             // Broadcast my location
             broadcastLocation(lastLocation);
         } else {
@@ -267,18 +275,22 @@ public class GameService extends IntentService implements IViewRangeListener {
 
     @Override
     public void updateMapElementLocation(String uid, int type, LatLng latLng) {
-        if (mapActivityIsResumed) {
+        if (!mapActivityIsInBackground) {
             // Broadcast rival
-            broadcastMapElementlLocation(uid, latLng);
+            broadcastMapElementlLocation(uid, type, latLng);
         } else {
-            locsPending.put(uid, latLng);
+            if (type == ICommon.LOCATION_TYPE_RIVAL) {
+                locsPendingRivals.put(uid, latLng);
+            } else {
+                locsPendingTreasures.put(uid, latLng);
+            }
             hasLocationsPending = true;
         }
     }
 
     @Override
     public void removeMapElementLocation(String uid) {
-        if (mapActivityIsResumed) {
+        if (!mapActivityIsInBackground) {
             // Broadcast marker id to be erased from map
             broadcastRemoveMapElement(uid);
         } else {
@@ -289,7 +301,7 @@ public class GameService extends IntentService implements IViewRangeListener {
 
     @Override
     public void setZoom(float zoom) {
-        if (mapActivityIsResumed) {
+        if (!mapActivityIsInBackground) {
             // Broadcast zoom change
             broadcastZoom(zoom);
         } else {
@@ -301,15 +313,19 @@ public class GameService extends IntentService implements IViewRangeListener {
     /*
 
      */
-    private void updateProvider(boolean status) {
+    /*private void updateProvider(boolean status) {
             // Broadcast provider status
             broadcastProvider(status);
-    }
+    }*/
 
     /*
     * Helper methods to send the location to the screen
      */
     private void broadcastLocation(Location loc) {
+        if (loc == null) {
+            return;
+        }
+
         Intent localIntent =
                 new Intent(ICommon.MY_LOCATION)
                         // Puts the status into the Intent
@@ -318,7 +334,7 @@ public class GameService extends IntentService implements IViewRangeListener {
         LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
     }
 
-    private void broadcastMapElementlLocation(String uid, LatLng latLng) {
+    private void broadcastMapElementlLocation(String uid, int tipo, LatLng latLng) {
         if (latLng == null)
             return;
 
@@ -326,7 +342,7 @@ public class GameService extends IntentService implements IViewRangeListener {
                 new Intent(ICommon.MAPELEMENT_LOCATION)
                         // Puts the status into the Intent
                         .putExtra(ICommon.MAPELEMENT_LOCATION, latLng)
-                        .putExtra(ICommon.MAPELEMENT_TYPE, ICommon.MARKER_RIVAL)
+                        .putExtra(ICommon.MAPELEMENT_TYPE, (tipo == ICommon.LOCATION_TYPE_RIVAL) ? ICommon.MARKER_RIVAL : ICommon.MARKER_TREASURE)
                         .putExtra(ICommon.UID, uid);
         // Broadcasts the Intent to receivers in this app.
         LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
@@ -350,14 +366,14 @@ public class GameService extends IntentService implements IViewRangeListener {
         LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
     }
 
-    private void broadcastProvider(boolean prov) {
+    /*private void broadcastProvider(boolean prov) {
         Intent localIntent =
                 new Intent(ICommon.SET_PROVIDER_INFO)
                         // Puts the status into the Intent
                         .putExtra(ICommon.SET_PROVIDER_INFO, prov);
         // Broadcasts the Intent to receivers in this app.
         LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
-    }
+    }*/
 
 
     /**
@@ -375,6 +391,11 @@ public class GameService extends IntentService implements IViewRangeListener {
         boolean isSignificantlyNewer = timeDelta > TWO_MINUTES;
         boolean isSignificantlyOlder = timeDelta < -TWO_MINUTES;
         boolean isNewer = timeDelta > 0;
+
+        float distance = location.distanceTo(lastLocation);
+        if (distance < ICommon.LOCATION_MIN_DISTANCE_CHANGE_FOR_UPDATES) {
+            return false;
+        }
 
         // If it's been more than two minutes since the current location, use the new location
         // because the user has likely moved
@@ -421,44 +442,60 @@ public class GameService extends IntentService implements IViewRangeListener {
         // App in fore/background status
         // Si pasamos a background bajamos la resolucion del GPS
         // Si pasamos a foreground subimos la precision del GPS
-        updateProvider(!backgroudStatus);
+        //updateProvider(!backgroudStatus);
+
+        Intent localIntent = new Intent(ICommon.SET_GPS_STATUS)
+                // Puts the status into the Intent
+                .putExtra(ICommon.SET_GPS_STATUS, !backgroudStatus);
+        sendBroadcast(localIntent);
     }
 
-    public void checkVisibility(String uid, LatLng loc, final ViewRangeManager.IVisibilityCompletionListener cb) {
+    public void checkVisibility(String uid, final ViewRangeManager.IVisibilityCompletionListener cb) {
         // Aplicar las reglas de visibilidad entre mi usuario y este
         Log.d(TAG, "checkVisibility: " + uid);
 
         final User myUser = MyUserManager.getInstance().getUser();
 
         // Obtain MapRival
-        MapElement elem = viewRange.getMapElement(uid);
+        final MapElement elem = viewRange.getMapElement(uid);
 
         // My own user is not inserted in the viewRange list, so do nothing here if elem is not found
-        if (elem == null)
-            return;
+        if (elem == null) {
+            Log.d(TAG, "checkVisibility: element is null");
+            cb.onCompleted(false);
+        } else {
+            if (lastLocation == null) {
+                Log.d(TAG, " checkVisibility lastLocation is null");
+                cb.onCompleted(false);
+            }
 
-        GeoLocation gloc = elem.getLocation();
-        Location otherUserLocation = new Location("?");
-        otherUserLocation.setLatitude(gloc.latitude);
-        otherUserLocation.setLongitude(gloc.longitude);
-        final float distance = lastLocation.distanceTo(otherUserLocation);
+            GeoLocation gloc = elem.getLocation();
+            Location otherUserLocation = new Location("?");
+            otherUserLocation.setLatitude(gloc.latitude);
+            otherUserLocation.setLongitude(gloc.longitude);
+            final float distance = lastLocation.distanceTo(otherUserLocation);
 
-        if (elem instanceof MapRival) {
-            // Obtener el usuario de la BBDD
-            DataManager.getInstance().getUser(uid, new ICallbacks.IUserCallbacks() {
-                @Override
-                public void onUserChange(User user) {
-                    boolean isVisible = applyVisibilityRules(myUser, user, distance);
-                    Log.d(TAG, "checkVisibility returns:" + isVisible);
-                    cb.onCompleted(isVisible);
-                }
-            });
-        } else if (elem instanceof MapTreasure) {
-
+            if (elem instanceof MapRival) {
+                // Obtener el usuario de la BBDD
+                DataManager.getInstance().getUser(uid, new ICallbacks.IUserCallbacks() {
+                    @Override
+                    public void onUserChange(User user) {
+                        ((MapRival) elem).setUser(user);
+                        boolean isVisible = applyVisibilityRules(myUser, user, distance);
+                        Log.d(TAG, "checkVisibility on user: " + user.getUid() + " returns:" + isVisible);
+                        cb.onCompleted(isVisible);
+                    }
+                });
+            } else if (elem instanceof MapTreasure) {
+                Log.d(TAG, "checkVisibility: todo maptreasure");
+                //TODO
+                cb.onCompleted(true);
+            }
         }
     }
 
     private boolean applyVisibilityRules(User myUser, User otherUser, float distance) {
+        Log.d(TAG, "applyVisibilityRules");
         boolean ret = false;
         int myWatchingSkill = myUser.getSkills().getWatching().getValue();
         int otherHidingSkill = otherUser.getSkills().getHiding().getValue();

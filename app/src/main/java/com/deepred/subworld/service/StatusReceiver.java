@@ -8,17 +8,19 @@ import android.content.ComponentCallbacks2;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 
 import com.deepred.subworld.ICommon;
+import com.deepred.subworld.engine.GameService;
 
 /**
  *
  */
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class StatusReceiver extends BroadcastReceiver implements Application.ActivityLifecycleCallbacks, ComponentCallbacks2 {
-    private static final String TAG = "StatusReceiver";
+    private static final String TAG = "SW SERVICE StatusRcvr  ";
 
     private boolean isAppInBackgroundState; // Real app status Foreground / Background
     private boolean screenOff; // Device screen is on/off
@@ -30,26 +32,35 @@ public class StatusReceiver extends BroadcastReceiver implements Application.Act
         screenOff = false;
     }
 
+    /*
+    Public methods
+     */
+    public void setService(LocationService _srv) {
+        srv = _srv;
+    }
+
+    protected boolean isAppInBackground() {
+        return (isAppInBackgroundState || screenOff);
+    }
+
+
+    /*
+    Private methods and overrides
+     */
+
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
 
         switch (action) {
             case ICommon.SET_GPS_STATUS:
-                //boolean status = intent.getBooleanExtra(ICommon.SET_GPS_STATUS, false);
                 LocationService.setRequiredGpsMode(intent.getBooleanExtra(ICommon.SET_GPS_STATUS, false));
-                /*if (srv != null)
-                    srv.switchProvider(status);
-                else
-                    LocationService.setProvider(status);*/
                 break;
             case Intent.ACTION_SCREEN_OFF:
                 screenOff = true;
-                //updateScreenStatus();
                 break;
             case Intent.ACTION_SCREEN_ON:
                 screenOff = false;
-                //updateScreenStatus();
                 if (!isAppInBackgroundState) {
                     LocationService.setRequiredGpsMode(true);
                 }
@@ -59,13 +70,6 @@ public class StatusReceiver extends BroadcastReceiver implements Application.Act
         reportStatusChanges();
     }
 
-    public void setService(LocationService _srv) {
-        srv = _srv;
-    }
-
-    public boolean isAppInBackground() {
-        return (isAppInBackgroundState || screenOff);
-    }
 
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
@@ -124,39 +128,18 @@ public class StatusReceiver extends BroadcastReceiver implements Application.Act
     private void setIsAppInBackground(boolean state) {
         if (isAppInBackgroundState != state) {
             isAppInBackgroundState = state;
-            //sendAppInBackgroundStatus(isAppInBackgroundState);
-            if (!isAppInBackgroundState && !screenOff) {
-                LocationService.setRequiredGpsMode(true);
-            }
+
+            boolean finalStatus = !isAppInBackgroundState && !screenOff;
+            LocationService.setRequiredGpsMode(finalStatus);
+
             reportStatusChanges();
+
+            Intent mServiceIntent = new Intent(srv, GameService.class);
+            mServiceIntent.setData(Uri.parse(ICommon.SET_BACKGROUND_STATUS));
+            mServiceIntent.putExtra(ICommon.SET_BACKGROUND_STATUS, !finalStatus);
+            srv.startService(mServiceIntent); // Starts the IntentService
         }
     }
-
-    /*private void sendAppInBackgroundStatus(boolean status) {
-        Intent mServiceIntent = new Intent(srv, GameService.class);
-        mServiceIntent.setData(Uri.parse(ICommon.SET_BACKGROUND_STATUS));
-        mServiceIntent.putExtra(ICommon.SET_BACKGROUND_STATUS, status);
-        srv.startService(mServiceIntent); // Starts the IntentService
-
-        boolean useGPS = !status;
-
-        if (srv != null)
-            srv.switchProvider(useGPS);
-        else
-            LocationService.setProvider(useGPS);
-    }
-*/
-    /*public void updateScreenStatus() {
-        if(screenOff) {
-            // Set gps to BG status if it wasn't already in BG
-            if (!isAppInBackgroundState) {
-                sendAppInBackgroundStatus(screenOff);
-            }
-        } else {
-            // Decide the GPS status
-            if()
-        }
-    }*/
 
     private void reportStatusChanges() {
         srv.evaluateGps();

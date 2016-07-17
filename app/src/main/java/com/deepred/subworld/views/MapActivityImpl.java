@@ -36,7 +36,7 @@ import java.util.Map;
  * Derives from AbstractMapActivity
  */
 public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.OnMarkerClickListener {
-    private String TAG = "MapActivityImpl";
+    private final static String TAG = "SW VIEWS MapActivityImp";
 
     // Markers
     private MarkerOptions myMark;
@@ -46,7 +46,10 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
     private Map<String, MapMarker> pendingMarkers;
     private Double pendingZoom;
     private boolean isGps;
+    private int iconGps;
+    private ImageView iconView;
     private MapActivityReceiver serviceReceiver;
+    private boolean resumedActivity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +61,9 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
         pendingMyMark = null;
         pendingMarkers = new HashMap<>();
         pendingZoom = null;
+        iconGps = R.drawable.gps;
+        iconView = (ImageView) findViewById(R.id.gps_state);
+        resumedActivity = false;
 
         serviceReceiver = new MapActivityReceiver(this);
         IntentFilter filter = new IntentFilter(ICommon.MY_LOCATION);
@@ -65,8 +71,20 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
         filter.addAction(ICommon.REMOVE_MAPELEMENT_LOCATION);
         filter.addAction(ICommon.SET_ZOOM);
         filter.addAction(ICommon.SET_PROVIDER_INFO);
-        //registerReceiver(serviceReceiver, filter);
         LocalBroadcastManager.getInstance(this).registerReceiver(serviceReceiver, filter);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        iconView.setImageResource(iconGps);
+        resumedActivity = true;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        resumedActivity = false;
     }
 
     public void mapReady() {
@@ -77,14 +95,19 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
         // Set pending markers and zoom if they exist
         if (pendingZoom != null) {
             zoom = pendingZoom;
+            Log.d(TAG, "Set pending zoom to " + zoom);
             setZoom(zoom);
         }
         if (pendingMyMark != null) {
+            Log.d(TAG, "Set pending myMark:" + pendingMyMark.toString());
             updateMyMarker(pendingMyMark);
         } else {
-            updateMyMarker(getLastLocation());
+            Location loc = getLastKnownLocation();
+            Log.d(TAG, "Set initial myMark with lastLocation " + loc.toString());
+            updateMyMarker(loc);
         }
         if (pendingMarkers.size() > 0) {
+            Log.d(TAG, "Set pending markers (" + pendingMarkers.size() + ")");
             ArrayList<String> keys = (ArrayList<String>) pendingMarkers.keySet();
 
             for (int i = 0; i < keys.size(); i++) {
@@ -99,8 +122,8 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
     /*
     * Retrieve stored or default location. Used when the map is shown before any points are provided from the service
      */
-    private Location getLastLocation() {
-        Location lastLocation;
+    private Location getLastKnownLocation() {
+        Location lastLocation = null;
         SubworldApplication app = ApplicationHolder.getApp();
         String lastLocationLat = app.getPreference(ICommon.LAST_LOCATION_LATITUDE);
         String lastLocationLong = app.getPreference(ICommon.LAST_LOCATION_LONGITUDE);
@@ -119,69 +142,17 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
         return lastLocation;
     }
 
-    public void updateMarker(String uid, int type, LatLng latLng) {
-        Log.d(TAG, "updateMarker" + latLng.getLatitude() + "," + latLng.getLongitude() + ", uid:" + uid);
-        final MapMarker elem = markers.get(uid);
-        final MarkerOptions m = elem.getMo();
-        if (m != null) {
-            updateExistingMarker(m, latLng);
-        } else {
-            IconFactory iconFactory = IconFactory.getInstance(this);
-            Drawable iconDrawable;
-            if (type == ICommon.LOCATION_TYPE_TREASURE) {
-                iconDrawable = ContextCompat.getDrawable(this, R.drawable.markers1);
-            } else {
-                iconDrawable = ContextCompat.getDrawable(this, R.drawable.markers2);
-            }
-            Icon icon = iconFactory.fromDrawable(iconDrawable);
-
-            MarkerOptions m2 = new MarkerOptions()
-                    .position(latLng)
-                    .title("User " + uid)
-                    .icon(icon)
-                    .snippet("marker to user " + uid);
-            updateNewMarker(uid, type, m2);
-        }
-    }
-
-    public void updateMarker(String uid, int type, MarkerOptions mo) {
-        Log.d(TAG, "updateMarker" + mo.getPosition().getLatitude() + "," + mo.getPosition().getLongitude() + ", uid:" + uid);
-        final MapMarker elem = markers.get(uid);
-        final MarkerOptions m = elem.getMo();
-        if (m != null) {
-            updateExistingMarker(m, mo.getPosition());
-        } else {
-            updateNewMarker(uid, type, mo);
-        }
-    }
-
-    private void updateExistingMarker(final MarkerOptions m, final LatLng pos) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                m.position(pos);
-            }
-        });
-    }
-
-    private void updateNewMarker(String uid, int type, final MarkerOptions mo) {
-        MapMarker marker = new MapMarker(mo, type, uid);
-
-        if (map != null) {
-            markers.put(uid, marker);
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    map.addMarker(mo);
-                }
-            });
-        } else {
-            pendingMarkers.put(uid, marker);
-        }
+    private void setLastKnownLocation(Location loc) {
+        SubworldApplication app = ApplicationHolder.getApp();
+        app.savePreference(ICommon.LAST_LOCATION_LATITUDE, Double.toString(loc.getLatitude()));
+        app.savePreference(ICommon.LAST_LOCATION_LONGITUDE, Double.toString(loc.getLongitude()));
+        app.savePreference(ICommon.LAST_LOCATION_PROVIDER, loc.getProvider());
     }
 
     public void updateMyMarker(final Location loc) {
         Log.d(TAG, "updateMyMarker: " + loc.getLatitude() + "," + loc.getLongitude() + ", bearing:" + loc.getBearing() + ", provider:" + loc.getProvider());
+
+        setLastKnownLocation(loc);
 
         LatLng latLng = new LatLng(loc.getLatitude(), loc.getLongitude());
 
@@ -230,6 +201,79 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
         }
     }
 
+    public void updateMarker(String uid, int type, LatLng latLng) {
+        Log.d(TAG, "updateMarker" + latLng.getLatitude() + "," + latLng.getLongitude() + ", uid:" + uid);
+        final MapMarker elem = markers.get(uid);
+
+        if (elem != null) {
+            final MarkerOptions m = elem.getMo();
+            if (m != null) {
+                updateExistingMarker(m, latLng);
+            } else {
+                buildMarker(uid, type, latLng);
+            }
+        } else {
+            buildMarker(uid, type, latLng);
+        }
+    }
+
+    private void buildMarker(String uid, int type, LatLng latLng) {
+        IconFactory iconFactory = IconFactory.getInstance(this);
+        Drawable iconDrawable;
+        if (type == ICommon.LOCATION_TYPE_TREASURE) {
+            iconDrawable = ContextCompat.getDrawable(this, R.drawable.markers1);
+        } else {
+            iconDrawable = ContextCompat.getDrawable(this, R.drawable.markers2);
+        }
+        Icon icon = iconFactory.fromDrawable(iconDrawable);
+
+        MarkerOptions m2 = new MarkerOptions()
+                .position(latLng)
+                .title("User " + uid)
+                .icon(icon)
+                .snippet("marker to user " + uid);
+        updateNewMarker(uid, type, m2);
+    }
+
+    /*
+        Call from mapReady to set pending markers only
+    */
+    private void updateMarker(String uid, int type, MarkerOptions mo) {
+        Log.d(TAG, "updateMarker (mapReady)" + mo.getPosition().getLatitude() + "," + mo.getPosition().getLongitude() + ", uid:" + uid);
+        final MapMarker elem = markers.get(uid);
+        final MarkerOptions m = elem.getMo();
+        if (m != null) {
+            updateExistingMarker(m, mo.getPosition());
+        } else {
+            updateNewMarker(uid, type, mo);
+        }
+    }
+
+    private void updateExistingMarker(final MarkerOptions m, final LatLng pos) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                m.position(pos);
+            }
+        });
+    }
+
+    private void updateNewMarker(String uid, int type, final MarkerOptions mo) {
+        MapMarker marker = new MapMarker(mo, type, uid);
+
+        if (map != null) {
+            markers.put(uid, marker);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    map.addMarker(mo);
+                }
+            });
+        } else {
+            pendingMarkers.put(uid, marker);
+        }
+    }
+
     public void removeMarker(String uid) {
         if (map != null) {
             MapMarker elem = markers.get(uid);
@@ -252,17 +296,24 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
         Log.d(TAG, "Provider changed: gps enabled:" + GpsEnabled);
         if (isGps != GpsEnabled) {
             isGps = GpsEnabled;
-            final ImageView i = (ImageView) findViewById(R.id.gps_state);
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    if (isGps) {
-                        i.setImageResource(R.drawable.gps);
-                    } else {
-                        i.setImageResource(R.drawable.wifi);
+
+            if (isGps) {
+                iconGps = R.drawable.gps;
+            } else {
+                iconGps = R.drawable.wifi;
+            }
+
+            // TODO if visible
+            if (resumedActivity) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        iconView.setImageResource(iconGps);
                     }
-                }
-            });
+                });
+            } else {
+                Log.d(TAG, "Skiping setImageResource, activity is in BG");
+            }
         }
     }
 

@@ -1,7 +1,9 @@
 package com.deepred.subworld.engine;
 
+import com.deepred.subworld.ICommon;
 import com.deepred.subworld.model.MapElement;
 import com.deepred.subworld.model.MapRival;
+import com.deepred.subworld.model.MapTreasure;
 import com.firebase.geofire.GeoLocation;
 
 import java.util.HashMap;
@@ -19,8 +21,15 @@ public class MapElements {
         elems = new HashMap<>();
     }
 
-    public void put(String _uid, GeoLocation _loc, boolean visibility) {
+    /*public void put(String _uid, GeoLocation _loc, boolean visibility) {
         elems.put(_uid, new MapRival(_loc, visibility));
+    }*/
+
+    public void put(String _uid, GeoLocation _loc, int tipo, boolean visibility) {
+        if (tipo == ICommon.LOCATION_TYPE_RIVAL)
+            elems.put(_uid, new MapRival(_loc, visibility));
+        else
+            elems.put(_uid, new MapTreasure(_loc, visibility));
     }
 
     public MapElement remove(String _uid) {
