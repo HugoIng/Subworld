@@ -33,8 +33,6 @@ import java.util.Map;
  * Created by aplicaty on 25/02/16.
  */
 public class GameService extends IntentService implements IViewRangeListener {
-
-    private static final int TWO_MINUTES = 1000 * 60 * 2;
     private final static String TAG = "SW ENGINE GameService  ";
 
     // User location
@@ -49,7 +47,8 @@ public class GameService extends IntentService implements IViewRangeListener {
     private Map<String, LatLng> locsPendingRivals = new HashMap<>();
     private Map<String, LatLng> locsPendingTreasures = new HashMap<>();
     private boolean hasRemovesPending = false;
-    private ArrayList<String> removesPending = new ArrayList<>();
+    private ArrayList<String> removesPendingRivals = new ArrayList<>();
+    private ArrayList<String> removesPendingTreasures = new ArrayList<>();
     private boolean hasZoomPending = false;
     private float zoomPending;
     private boolean hasProvPending = false;
@@ -57,10 +56,12 @@ public class GameService extends IntentService implements IViewRangeListener {
 
     public GameService() {
         super(TAG);
-        lastLocation = null;
         mapActivityIsInBackground = false;
         viewRange = ViewRangeManager.getInstance();
         viewRange.setContext(this);
+
+        // Get initial location from localStorage or default
+        lastLocation = ApplicationHolder.getApp().getLastKnownLocation();
     }
 
     @Override
@@ -85,6 +86,7 @@ public class GameService extends IntentService implements IViewRangeListener {
                 // Filter old, unaccurate locations
                 if (isBetterLocation(location)) {
                     lastLocation = location;
+                    ApplicationHolder.getApp().setLastKnownLocation(location);
                     // Deal with new location: DDBB query to update the rivals that are within are view range
                     viewRange.update(lastLocation);
                 }
@@ -123,10 +125,15 @@ public class GameService extends IntentService implements IViewRangeListener {
                     }
 
                     if (hasRemovesPending) {
-                        for (String uid : removesPending) {
+                        for (String uid : removesPendingRivals) {
                             // Remove rivals from map
                             broadcastRemoveMapElement(uid);
-                            removesPending.remove(uid);
+                            removesPendingRivals.remove(uid);
+                        }
+                        for (String uid : removesPendingTreasures) {
+                            // Remove rivals from map
+                            broadcastRemoveMapElement(uid);
+                            removesPendingTreasures.remove(uid);
                         }
                         hasRemovesPending = false;
                     }
@@ -281,20 +288,28 @@ public class GameService extends IntentService implements IViewRangeListener {
         } else {
             if (type == ICommon.LOCATION_TYPE_RIVAL) {
                 locsPendingRivals.put(uid, latLng);
+                removesPendingRivals.remove(uid);
             } else {
                 locsPendingTreasures.put(uid, latLng);
+                removesPendingTreasures.remove(uid);
             }
             hasLocationsPending = true;
         }
     }
 
     @Override
-    public void removeMapElementLocation(String uid) {
+    public void removeMapElementLocation(String uid, int type) {
         if (!mapActivityIsInBackground) {
             // Broadcast marker id to be erased from map
             broadcastRemoveMapElement(uid);
         } else {
-            removesPending.add(uid);
+            if (type == ICommon.LOCATION_TYPE_RIVAL) {
+                removesPendingRivals.add(uid);
+                //locsPendingRivals.remove()
+            } else {
+                removesPendingTreasures.add(uid);
+                //locsPendingTreasures.remove();
+            }
             hasRemovesPending = true;
         }
     }
@@ -388,8 +403,8 @@ public class GameService extends IntentService implements IViewRangeListener {
 
         // Check whether the new location fix is newer or older
         long timeDelta = location.getTime() - lastLocation.getTime();
-        boolean isSignificantlyNewer = timeDelta > TWO_MINUTES;
-        boolean isSignificantlyOlder = timeDelta < -TWO_MINUTES;
+        boolean isSignificantlyNewer = timeDelta > ICommon.TWO_MINUTES;
+        boolean isSignificantlyOlder = timeDelta < -ICommon.TWO_MINUTES;
         boolean isNewer = timeDelta > 0;
 
         float distance = location.distanceTo(lastLocation);
@@ -450,7 +465,7 @@ public class GameService extends IntentService implements IViewRangeListener {
         sendBroadcast(localIntent);
     }
 
-    public void checkVisibility(String uid, final ViewRangeManager.IVisibilityCompletionListener cb) {
+    public void checkVisibility(final String uid) {
         // Aplicar las reglas de visibilidad entre mi usuario y este
         Log.d(TAG, "checkVisibility: " + uid);
 
@@ -462,13 +477,8 @@ public class GameService extends IntentService implements IViewRangeListener {
         // My own user is not inserted in the viewRange list, so do nothing here if elem is not found
         if (elem == null) {
             Log.d(TAG, "checkVisibility: element is null");
-            cb.onCompleted(false);
+            //onVisibilityResult(null, false);
         } else {
-            if (lastLocation == null) {
-                Log.d(TAG, " checkVisibility lastLocation is null");
-                cb.onCompleted(false);
-            }
-
             GeoLocation gloc = elem.getLocation();
             Location otherUserLocation = new Location("?");
             otherUserLocation.setLatitude(gloc.latitude);
@@ -483,13 +493,31 @@ public class GameService extends IntentService implements IViewRangeListener {
                         ((MapRival) elem).setUser(user);
                         boolean isVisible = applyVisibilityRules(myUser, user, distance);
                         Log.d(TAG, "checkVisibility on user: " + user.getUid() + " returns:" + isVisible);
-                        cb.onCompleted(isVisible);
+                        onVisibilityResult(uid, elem, isVisible);
                     }
                 });
             } else if (elem instanceof MapTreasure) {
                 Log.d(TAG, "checkVisibility: todo maptreasure");
                 //TODO
-                cb.onCompleted(true);
+                //onVisibilityResult(null, true);
+            }
+        }
+    }
+
+    private void onVisibilityResult(String uid, MapElement elem, boolean isVisible) {
+
+        if (isVisible != elem.isVisible()) {
+            Log.d(TAG, "checkElementVisibility: Applying visibility change!!!");
+            elem.setVisible(isVisible);
+            int tipo = (elem instanceof MapRival) ? ICommon.LOCATION_TYPE_RIVAL : ICommon.LOCATION_TYPE_TREASURE;
+            if (isVisible) {
+                // Lo pinto
+                GeoLocation g = elem.getLocation();
+                LatLng loc = new LatLng(g.latitude, g.longitude);
+                updateMapElementLocation(uid, tipo, loc);
+            } else {
+                // Ya no se ve, lo borro.
+                removeMapElementLocation(uid, tipo);
             }
         }
     }

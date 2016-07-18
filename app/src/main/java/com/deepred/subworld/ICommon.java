@@ -111,6 +111,7 @@ public class ICommon {
     // Location related constants
     // The minimum distance to change Updates in meters
     public static final long LOCATION_MIN_DISTANCE_CHANGE_FOR_UPDATES = 5; // 5 meters
+    public static final int TWO_MINUTES = 1000 * 60 * 2;
     // The minimum time between updates in milliseconds
     public static final long LOCATION_MIN_TIME_BW_UPDATES = 1000 * 10; // 10 seconds
     public static final long LOCATION_GOOGLE_TIME_INTERVAL = 15000;

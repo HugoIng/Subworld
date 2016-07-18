@@ -10,7 +10,7 @@ public interface IViewRangeListener {
 
     void updateMapElementLocation(String uid, int type, LatLng l);
 
-    void removeMapElementLocation(String uid);
+    void removeMapElementLocation(String uid, int type);
 
     void setZoom(float zoom);
 }

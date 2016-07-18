@@ -38,13 +38,16 @@ import java.util.Map;
 public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.OnMarkerClickListener {
     private final static String TAG = "SW VIEWS MapActivityImp";
 
-    // Markers
+    // Markers and values
     private MarkerOptions myMark;
     private Map<String, MapMarker> markers;
     private double zoom;
+
+    // Pendings
     private Location pendingMyMark;
     private Map<String, MapMarker> pendingMarkers;
     private Double pendingZoom;
+
     private boolean isGps;
     private int iconGps;
     private ImageView iconView;
@@ -58,9 +61,11 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
         myMark = null;
         markers = new HashMap<>();
         zoom = 14.00;
+
         pendingMyMark = null;
         pendingMarkers = new HashMap<>();
         pendingZoom = null;
+
         iconGps = R.drawable.gps;
         iconView = (ImageView) findViewById(R.id.gps_state);
         resumedActivity = false;
@@ -97,12 +102,14 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
             zoom = pendingZoom;
             Log.d(TAG, "Set pending zoom to " + zoom);
             setZoom(zoom);
+            pendingZoom = null;
         }
         if (pendingMyMark != null) {
             Log.d(TAG, "Set pending myMark:" + pendingMyMark.toString());
             updateMyMarker(pendingMyMark);
+            pendingMyMark = null;
         } else {
-            Location loc = getLastKnownLocation();
+            Location loc = ApplicationHolder.getApp().getLastKnownLocation();
             Log.d(TAG, "Set initial myMark with lastLocation " + loc.toString());
             updateMyMarker(loc);
         }
@@ -122,7 +129,7 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
     /*
     * Retrieve stored or default location. Used when the map is shown before any points are provided from the service
      */
-    private Location getLastKnownLocation() {
+    /*private Location getLastKnownLocation() {
         Location lastLocation = null;
         SubworldApplication app = ApplicationHolder.getApp();
         String lastLocationLat = app.getPreference(ICommon.LAST_LOCATION_LATITUDE);
@@ -147,13 +154,10 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
         app.savePreference(ICommon.LAST_LOCATION_LATITUDE, Double.toString(loc.getLatitude()));
         app.savePreference(ICommon.LAST_LOCATION_LONGITUDE, Double.toString(loc.getLongitude()));
         app.savePreference(ICommon.LAST_LOCATION_PROVIDER, loc.getProvider());
-    }
+    }*/
 
     public void updateMyMarker(final Location loc) {
         Log.d(TAG, "updateMyMarker: " + loc.getLatitude() + "," + loc.getLongitude() + ", bearing:" + loc.getBearing() + ", provider:" + loc.getProvider());
-
-        setLastKnownLocation(loc);
-
         LatLng latLng = new LatLng(loc.getLatitude(), loc.getLongitude());
 
         final CameraPosition position = new CameraPosition.Builder()

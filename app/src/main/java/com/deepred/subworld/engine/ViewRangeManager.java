@@ -14,7 +14,6 @@ import com.mapbox.mapboxsdk.geometry.LatLng;
 import java.util.ArrayList;
 import java.util.List;
 
-//import com.google.android.gms.maps.model.LatLng;
 
 /**
  * Created by aplicaty on 29/02/16.
@@ -26,7 +25,6 @@ public class ViewRangeManager {
     private static volatile ViewRangeManager instance = null;
     private GameService gm;
     private MapElements elems;
-    private GeoLocation myLocation;
     private double actualRange = 200; // Range in meters
     private float zoom;
     private boolean applyRangeReduction;
@@ -123,10 +121,6 @@ public class ViewRangeManager {
                 previousUsersToBeRemoved.addAll(elems.getKeys());
             }
 
-            /*Location loc = new Location("?");
-            loc.setLatitude(myLocation.latitude);
-            loc.setLongitude(myLocation.longitude);
-            update(loc);*/
             // Adjust zoom
             setZoom();
         }
@@ -135,12 +129,8 @@ public class ViewRangeManager {
     public void add(final String uid, final int type, final GeoLocation g, boolean isMe) {
         Log.d(TAG, "Add " + uid + " (isMe:" + isMe + ")");
         if(isMe) {
-            // actualiza
-            myLocation = g;
-
             // Comprueba la visibilidad de los otros usuarios al cambiar mi posicion
             refreshElementsVisibility();
-
             gm.updateMyLocation();
         } else {
             if(applyRangeReduction) {
@@ -153,27 +143,7 @@ public class ViewRangeManager {
                 }
             }
 
-           /* // Check visibilidad
-            gm.checkVisibility(uid, new LatLng(g.latitude, g.longitude), new IVisibilityCompletionListener() {
-                @Override
-                public void onCompleted(boolean isVisible) {
-                    boolean wasVisibleBefore = elems.isVisible(uid);
-
-                    // Actualiza elems
-                    elems.put(uid, g, isVisible);
-
-                    if (isVisible) {
-                        // Lo pinto
-                        gm.updateMapElementLocation(uid, type, new LatLng(g.latitude, g.longitude));
-                    } else if (wasVisibleBefore) {
-                        // Ya no se ve, lo borro.
-                        gm.removeMapElementLocation(uid);
-                    }
-                }
-            });*/
-
             elems.put(uid, g, type, false);
-
             checkElementVisibility(uid);
         }
     }
@@ -187,27 +157,7 @@ public class ViewRangeManager {
 
     private void checkElementVisibility(final String uid) {
         Log.d(TAG, "checkElementVisibility: " + uid);
-
-        gm.checkVisibility(uid, new IVisibilityCompletionListener() {
-            @Override
-            public void onCompleted(boolean isVisible) {
-                MapElement u = elems.get(uid);
-                if (isVisible != u.isVisible()) {
-                    Log.d(TAG, "checkElementVisibility: Applying visibility change!!!");
-                    u.setVisible(isVisible);
-                    if (isVisible) {
-                        // Lo pinto
-                        int tipo = (u instanceof MapRival) ? ICommon.LOCATION_TYPE_RIVAL : ICommon.LOCATION_TYPE_TREASURE;
-                        GeoLocation g = u.getLocation();
-                        LatLng loc = new LatLng(g.latitude, g.longitude);
-                        gm.updateMapElementLocation(uid, tipo, loc);
-                    } else {
-                        // Ya no se ve, lo borro.
-                        gm.removeMapElementLocation(uid);
-                    }
-                }
-            }
-        });
+        gm.checkVisibility(uid);
     }
 
     public void remove(String uid) {
@@ -238,9 +188,5 @@ public class ViewRangeManager {
 
     public float getZoom() {
         return zoom;
-    }
-
-    public interface IVisibilityCompletionListener {
-        void onCompleted(boolean isVisible);
     }
 }

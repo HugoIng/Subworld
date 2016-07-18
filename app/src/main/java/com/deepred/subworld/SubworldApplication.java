@@ -2,6 +2,7 @@ package com.deepred.subworld;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.location.Location;
 import android.support.multidex.MultiDexApplication;
 import android.util.Log;
 
@@ -90,6 +91,36 @@ public class SubworldApplication extends MultiDexApplication {
 
     public void setOnBackPressed(OnBackPressed onBackPressed) {
         this.onBackPressed = onBackPressed;
+    }
+
+    /*
+    * Retrieve stored or default location. Used when the map is shown before any points are provided from the service
+     */
+    public Location getLastKnownLocation() {
+        Location loc = null;
+        String lastLocationLat = getPreference(ICommon.LAST_LOCATION_LATITUDE);
+        String lastLocationLong = getPreference(ICommon.LAST_LOCATION_LONGITUDE);
+        String lastLocationProv = getPreference(ICommon.LAST_LOCATION_PROVIDER);
+        if (lastLocationLat != null && lastLocationLong != null) {
+            // Devolvemos la ultima localizacion de localStorage
+            loc = new Location(lastLocationProv);
+            loc.setLatitude(Double.parseDouble(lastLocationLat));
+            loc.setLongitude(Double.parseDouble(lastLocationLong));
+        } else {
+            // Devolvemos la localizacion por defecto de la app
+            loc = new Location(ICommon.DEFAULT_PROVIDER);
+            loc.setLatitude(ICommon.DEFAULT_LATITUDE);
+            loc.setLongitude(ICommon.DEFAULT_LONGITUDE);
+        }
+        return loc;
+    }
+
+    public void setLastKnownLocation(Location loc) {
+        SharedPreferences.Editor editor = getPreferences().edit();
+        editor.putString(ICommon.LAST_LOCATION_LATITUDE, Double.toString(loc.getLatitude()));
+        editor.putString(ICommon.LAST_LOCATION_LONGITUDE, Double.toString(loc.getLongitude()));
+        editor.putString(ICommon.LAST_LOCATION_PROVIDER, loc.getProvider());
+        editor.commit();
     }
 
 }
