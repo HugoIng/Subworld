@@ -167,6 +167,7 @@ public class ICommon {
     public static final String SET_PROVIDER_INFO = "set_provider_info";
     public static final String UID = "uid";
     public static final String MAPELEMENT_TYPE = "mapelement_type";
+    public static final String DISTANCE = "distance";
     // Custom broadcasts sent to StatusReceiver
     public static final String SET_GPS_STATUS = "set_gps_status";
     //public static final String BBDD_CONNECTED = "bbdd_connected";

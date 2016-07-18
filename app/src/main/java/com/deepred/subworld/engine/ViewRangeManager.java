@@ -9,7 +9,6 @@ import com.deepred.subworld.ICommon;
 import com.deepred.subworld.model.MapElement;
 import com.deepred.subworld.model.MapRival;
 import com.firebase.geofire.GeoLocation;
-import com.mapbox.mapboxsdk.geometry.LatLng;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -144,26 +143,22 @@ public class ViewRangeManager {
             }
 
             elems.put(uid, g, type, false);
-            checkElementVisibility(uid);
+            gm.checkVisibility(uid);
         }
     }
 
     private void refreshElementsVisibility() {
         Log.d(TAG, "refreshElementsVisibility");
         for (String uid : elems.getKeys()) {
-            checkElementVisibility(uid);
+            gm.checkVisibility(uid);
         }
     }
 
-    private void checkElementVisibility(final String uid) {
-        Log.d(TAG, "checkElementVisibility: " + uid);
-        gm.checkVisibility(uid);
-    }
-
     public void remove(String uid) {
-        MapElement u = elems.remove(uid);
-        if(u.isVisible()) {
-            gm.removeMapElementLocation(uid);
+        MapElement elem = elems.remove(uid);
+        if (elem.isVisible()) {
+            int tipo = (elem instanceof MapRival) ? ICommon.LOCATION_TYPE_RIVAL : ICommon.LOCATION_TYPE_TREASURE;
+            gm.removeMapElementLocation(uid, tipo);
         }
     }
 

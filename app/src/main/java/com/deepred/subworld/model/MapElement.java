@@ -1,5 +1,7 @@
 package com.deepred.subworld.model;
 
+import android.location.Location;
+
 import com.firebase.geofire.GeoLocation;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 
@@ -29,12 +31,19 @@ public abstract class MapElement {
         isVisible = visible;
     }
 
-    public GeoLocation getLocation() {
+    public GeoLocation getGeolocation() {
         return loc;
     }
 
-    public void setLocation(GeoLocation _loc) {
+    public void setGeolocation(GeoLocation _loc) {
         loc = _loc;
+    }
+
+    public Location getLocation() {
+        Location location = new Location("copy");
+        location.setLatitude(loc.latitude);
+        location.setLongitude(loc.longitude);
+        return location;
     }
 
 }

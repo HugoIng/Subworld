@@ -16,7 +16,6 @@ import android.widget.ImageView;
 import com.deepred.subworld.ApplicationHolder;
 import com.deepred.subworld.ICommon;
 import com.deepred.subworld.R;
-import com.deepred.subworld.SubworldApplication;
 import com.deepred.subworld.engine.GameService;
 import com.deepred.subworld.model.MapMarker;
 import com.mapbox.mapboxsdk.annotations.Icon;
@@ -126,36 +125,6 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
         }
     }
 
-    /*
-    * Retrieve stored or default location. Used when the map is shown before any points are provided from the service
-     */
-    /*private Location getLastKnownLocation() {
-        Location lastLocation = null;
-        SubworldApplication app = ApplicationHolder.getApp();
-        String lastLocationLat = app.getPreference(ICommon.LAST_LOCATION_LATITUDE);
-        String lastLocationLong = app.getPreference(ICommon.LAST_LOCATION_LONGITUDE);
-        String lastLocationProv = app.getPreference(ICommon.LAST_LOCATION_PROVIDER);
-        if (lastLocationLat != null && lastLocationLong != null) {
-            // Devolvemos la ultima localizacion de localStorage
-            lastLocation = new Location(lastLocationProv);
-            lastLocation.setLatitude(Double.parseDouble(lastLocationLat));
-            lastLocation.setLongitude(Double.parseDouble(lastLocationLong));
-        } else {
-            // Devolvemos la localizacion por defecto de la app
-            lastLocation = new Location(ICommon.DEFAULT_PROVIDER);
-            lastLocation.setLatitude(ICommon.DEFAULT_LATITUDE);
-            lastLocation.setLongitude(ICommon.DEFAULT_LONGITUDE);
-        }
-        return lastLocation;
-    }
-
-    private void setLastKnownLocation(Location loc) {
-        SubworldApplication app = ApplicationHolder.getApp();
-        app.savePreference(ICommon.LAST_LOCATION_LATITUDE, Double.toString(loc.getLatitude()));
-        app.savePreference(ICommon.LAST_LOCATION_LONGITUDE, Double.toString(loc.getLongitude()));
-        app.savePreference(ICommon.LAST_LOCATION_PROVIDER, loc.getProvider());
-    }*/
-
     public void updateMyMarker(final Location loc) {
         Log.d(TAG, "updateMyMarker: " + loc.getLatitude() + "," + loc.getLongitude() + ", bearing:" + loc.getBearing() + ", provider:" + loc.getProvider());
         LatLng latLng = new LatLng(loc.getLatitude(), loc.getLongitude());
@@ -221,6 +190,25 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
         }
     }
 
+    /*
+       Call from mapReady to set pending markers only
+   */
+    private void updateMarker(String uid, int type, MarkerOptions mo) {
+        Log.d(TAG, "updateMarker (mapReady)" + mo.getPosition().getLatitude() + "," + mo.getPosition().getLongitude() + ", uid:" + uid);
+        final MapMarker elem = markers.get(uid);
+
+        if (elem != null) {
+            final MarkerOptions m = elem.getMo();
+            if (m != null) {
+                updateExistingMarker(m, mo.getPosition());
+            } else {
+                updateNewMarker(uid, type, mo);
+            }
+        } else {
+            updateNewMarker(uid, type, mo);
+        }
+    }
+
     private void buildMarker(String uid, int type, LatLng latLng) {
         IconFactory iconFactory = IconFactory.getInstance(this);
         Drawable iconDrawable;
@@ -237,20 +225,6 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
                 .icon(icon)
                 .snippet("marker to user " + uid);
         updateNewMarker(uid, type, m2);
-    }
-
-    /*
-        Call from mapReady to set pending markers only
-    */
-    private void updateMarker(String uid, int type, MarkerOptions mo) {
-        Log.d(TAG, "updateMarker (mapReady)" + mo.getPosition().getLatitude() + "," + mo.getPosition().getLongitude() + ", uid:" + uid);
-        final MapMarker elem = markers.get(uid);
-        final MarkerOptions m = elem.getMo();
-        if (m != null) {
-            updateExistingMarker(m, mo.getPosition());
-        } else {
-            updateNewMarker(uid, type, mo);
-        }
     }
 
     private void updateExistingMarker(final MarkerOptions m, final LatLng pos) {
@@ -281,6 +255,10 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
     public void removeMarker(String uid) {
         if (map != null) {
             MapMarker elem = markers.get(uid);
+            if (elem == null) {
+                Log.e(TAG, "MapMarker is null. Not properly synced with manager");
+                return;
+            }
             final MarkerOptions m = elem.getMo();
             if (m != null) {
                 markers.remove(uid);
