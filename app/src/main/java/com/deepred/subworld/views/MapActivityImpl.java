@@ -75,6 +75,7 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
         filter.addAction(ICommon.REMOVE_MAPELEMENT_LOCATION);
         filter.addAction(ICommon.SET_ZOOM);
         filter.addAction(ICommon.SET_PROVIDER_INFO);
+        filter.addAction(ICommon.SHOW_ACTION_SCREEN);
         LocalBroadcastManager.getInstance(this).registerReceiver(serviceReceiver, filter);
     }
 
@@ -325,15 +326,16 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
     public boolean onMarkerClick(@NonNull Marker marker) {
 
         if (marker.equals(myMark.getMarker())) {
-            Log.d(TAG, "MyMarker encontrado");
+            Log.d(TAG, "MyMarker pulsado");
             // Open drawer
             drawer.openDrawer(Gravity.LEFT);
         } else {
             for (Map.Entry<String, MapMarker> entry : markers.entrySet()) {
                 MarkerOptions m = entry.getValue().getMo();
                 if (m.getMarker().equals(marker)) {
-                    Log.d(TAG, "Marker encontrado: " + entry.getKey());
+                    Log.d(TAG, "Marker pulsado: " + entry.getKey());
 
+                    Log.v(TAG, "sending MAPELEMENT_SELECTED");
                     // Ask for the rival to the service
                     Intent mServiceIntent = new Intent(this, GameService.class);
                     mServiceIntent.setData(Uri.parse(ICommon.MAPELEMENT_SELECTED));
@@ -344,5 +346,11 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
         }
 
         return true;
+    }
+
+    protected void showActionScreen() {
+        Intent outI = new Intent(this, UserActionActivity.class);
+        //outI.putExtra(ICommon.DISTANCE, Double.toString(distance));
+        startActivity(outI);
     }
 }

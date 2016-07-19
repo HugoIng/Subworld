@@ -165,6 +165,7 @@ public class ICommon {
     public static final String REMOVE_MAPELEMENT_LOCATION = "remove_mapelement_location";
     public static final String SET_ZOOM = "set_zoom";
     public static final String SET_PROVIDER_INFO = "set_provider_info";
+    public static final String SHOW_ACTION_SCREEN = "show_action_screen";
     public static final String UID = "uid";
     public static final String MAPELEMENT_TYPE = "mapelement_type";
     public static final String DISTANCE = "distance";

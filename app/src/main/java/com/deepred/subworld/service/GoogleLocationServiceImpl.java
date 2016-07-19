@@ -166,11 +166,12 @@ public class GoogleLocationServiceImpl extends LocationService implements Google
         sendLastLocation();
 
         // After 15 seconds, if no location is retrieved, go back to LOW_PRECISSION mode.
+        Log.d(TAG, "Setting GPS timeout");
         Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             public void run() {
                 if (lastLocation.getTime() > System.currentTimeMillis() - ICommon.DISABLE_GPS_IF_NO_LOCATIONS_AFTER)
-                    Log.d(TAG, "Gps desabilitado tras " + ICommon.DISABLE_GPS_IF_NO_LOCATIONS_AFTER + "ms sin recibir localizaciones");
+                    Log.d(TAG, "GPS desabilitado tras " + ICommon.DISABLE_GPS_IF_NO_LOCATIONS_AFTER + "ms sin recibir localizaciones");
                     switchProvider(false);
             }
         }, ICommon.DISABLE_GPS_IF_NO_LOCATIONS_AFTER);

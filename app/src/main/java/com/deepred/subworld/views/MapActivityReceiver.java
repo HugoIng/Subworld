@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.deepred.subworld.ICommon;
 import com.mapbox.mapboxsdk.geometry.LatLng;
@@ -26,6 +27,7 @@ public class MapActivityReceiver extends BroadcastReceiver {
 
         switch (action) {
             case ICommon.MY_LOCATION: {
+                Log.v(TAG, "onReceive: MY_LOCATION");
                 Bundle bundle = intent.getExtras();
                 if (bundle == null) {
                     return;
@@ -36,6 +38,7 @@ public class MapActivityReceiver extends BroadcastReceiver {
                 break;
             }
             case ICommon.MAPELEMENT_LOCATION: {
+                Log.v(TAG, "onReceive: MAPELEMENT_LOCATION");
                 Bundle bundle = intent.getExtras();
                 if (bundle == null) {
                     return;
@@ -47,17 +50,25 @@ public class MapActivityReceiver extends BroadcastReceiver {
                 break;
             }
             case ICommon.REMOVE_MAPELEMENT_LOCATION: {
+                Log.v(TAG, "onReceive: REMOVE_MAPELEMENT_LOCATION");
                 String uid = intent.getStringExtra(ICommon.UID);
                 act.removeMarker(uid);
                 break;
             }
             case ICommon.SET_ZOOM:
+                Log.v(TAG, "onReceive: SET_ZOOM");
                 float zoom = intent.getFloatExtra(ICommon.SET_ZOOM, 0);
                 act.setZoom(zoom);
                 break;
             case ICommon.SET_PROVIDER_INFO:
+                Log.v(TAG, "onReceive: SET_PROVIDER_INFO");
                 boolean prov = intent.getBooleanExtra(ICommon.SET_PROVIDER_INFO, false);
                 act.providerChanged(prov);
+                break;
+            case ICommon.SHOW_ACTION_SCREEN:
+                Log.v(TAG, "onReceive: SHOW_ACTION_SCREEN");
+                //boolean prov = intent.getBooleanExtra(ICommon.SET_PROVIDER_INFO, false);
+                act.showActionScreen();
                 break;
         }
     }

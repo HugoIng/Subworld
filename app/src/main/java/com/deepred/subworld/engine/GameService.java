@@ -20,7 +20,6 @@ import com.deepred.subworld.model.User;
 import com.deepred.subworld.utils.ICallbacks;
 import com.deepred.subworld.utils.IViewRangeListener;
 import com.deepred.subworld.utils.MyUserManager;
-import com.deepred.subworld.views.UserActionActivity;
 import com.firebase.geofire.GeoLocation;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 
@@ -109,7 +108,7 @@ public class GameService extends IntentService implements IViewRangeListener {
                 if (!mapActivityIsInBackground) {
                     if (hasMyLocationPending) {
                         // Broadcast my location
-                        broadcastLocation(lastLocation);
+                        broadcastMyLocation(lastLocation);
                         hasMyLocationPending = false;
                     }
 
@@ -206,6 +205,8 @@ public class GameService extends IntentService implements IViewRangeListener {
                                 u.setChrType(chr_selected);
                                 SharedPreferences prefs = ApplicationHolder.getApp().getPreferences();
                                 u.setEmail(prefs.getString(ICommon.EMAIL, null));
+
+                                // Generate and save 2 treasures randomly
                                 addDefaultTreasures(u, new ICallbacks.IStoreCallbacks() {
                                     @Override
                                     public void onError() {
@@ -217,7 +218,7 @@ public class GameService extends IntentService implements IViewRangeListener {
 
                                     @Override
                                     public void onSuccess() {
-
+                                        // Save user changes
                                         DataManager.getInstance().saveUser(u, new ICallbacks.IStoreCallbacks() {
                                             @Override
                                             public void onError() {
@@ -272,12 +273,21 @@ public class GameService extends IntentService implements IViewRangeListener {
 
                     // Info a mostrar del usuario
 
-                    Intent outI = new Intent(this, UserActionActivity.class);
+                    /*Intent outI = new Intent(this, UserActionActivity.class);
                     Location loc = r.getLocation();
                     // distancia entre mi usuario y el rival
                     float distance = loc.distanceTo(lastLocation);
                     outI.putExtra(ICommon.DISTANCE, Double.toString(distance));
-                    startActivity(outI);
+                    startActivity(outI);*/
+
+                    Log.v(TAG, "sending SHOW_ACTION_SCREEN");
+                    Intent localIntent =
+                            new Intent(ICommon.SHOW_ACTION_SCREEN)
+                                    // Puts the status into the Intent
+                                    .putExtra(ICommon.UID, uid);
+                    // Broadcasts the Intent to receivers in this app.
+                    LocalBroadcastManager.getInstance(this).sendBroadcast(localIntent);
+
                 }
                 break;
         }
@@ -316,8 +326,9 @@ public class GameService extends IntentService implements IViewRangeListener {
     public void updateMyLocation() {
         if (!mapActivityIsInBackground) {
             // Broadcast my location
-            broadcastLocation(lastLocation);
+            broadcastMyLocation(lastLocation);
         } else {
+            Log.v(TAG, "updateMyLocation: Storing pending MyLocation");
             hasMyLocationPending = true;
         }
     }
@@ -328,6 +339,7 @@ public class GameService extends IntentService implements IViewRangeListener {
             // Broadcast rival
             broadcastMapElementlLocation(uid, type, latLng);
         } else {
+            Log.v(TAG, "updateMapElementLocation: Storing pending MapElement");
             if (type == ICommon.LOCATION_TYPE_RIVAL) {
                 locsPendingRivals.put(uid, latLng);
                 if (removesPendingRivals.contains(uid)) {
@@ -349,6 +361,7 @@ public class GameService extends IntentService implements IViewRangeListener {
             // Broadcast marker id to be erased from map
             broadcastRemoveMapElement(uid);
         } else {
+            Log.v(TAG, "removeMapElementLocation: removing pending MapElement");
             if (type == ICommon.LOCATION_TYPE_RIVAL) {
                 removesPendingRivals.add(uid);
                 if (locsPendingRivals.containsKey(uid)) {
@@ -370,6 +383,7 @@ public class GameService extends IntentService implements IViewRangeListener {
             // Broadcast zoom change
             broadcastZoom(zoom);
         } else {
+            Log.v(TAG, "setZoom: Store pending zoom");
             zoomPending = zoom;
             hasZoomPending = true;
         }
@@ -378,11 +392,12 @@ public class GameService extends IntentService implements IViewRangeListener {
     /*
     * Helper methods to send the location to the screen
      */
-    private void broadcastLocation(Location loc) {
+    private void broadcastMyLocation(Location loc) {
         if (loc == null) {
+            Log.e(TAG, "broadcastMyLocation: Location is null");
             return;
         }
-
+        Log.v(TAG, "broadcastMyLocation: sending MyLocation");
         Intent localIntent =
                 new Intent(ICommon.MY_LOCATION)
                         // Puts the status into the Intent
@@ -392,9 +407,11 @@ public class GameService extends IntentService implements IViewRangeListener {
     }
 
     private void broadcastMapElementlLocation(String uid, int tipo, LatLng latLng) {
-        if (latLng == null)
+        if (latLng == null) {
+            Log.e(TAG, "broadcastMapElementlLocation: MapElement is null");
             return;
-
+        }
+        Log.v(TAG, "broadcastMapElementlLocation: sending MapElement");
         Intent localIntent =
                 new Intent(ICommon.MAPELEMENT_LOCATION)
                         // Puts the status into the Intent
@@ -406,6 +423,7 @@ public class GameService extends IntentService implements IViewRangeListener {
     }
 
     private void broadcastRemoveMapElement(String uid) {
+        Log.v(TAG, "broadcastRemoveMapElement: request MapElement removal");
         Intent localIntent =
                 new Intent(ICommon.REMOVE_MAPELEMENT_LOCATION)
                         // Puts the status into the Intent
@@ -415,6 +433,7 @@ public class GameService extends IntentService implements IViewRangeListener {
     }
 
     private void broadcastZoom(float zoom) {
+        Log.v(TAG, "broadcastZoom: sending zoom");
         Intent localIntent =
                 new Intent(ICommon.SET_ZOOM)
                         // Puts the status into the Intent
