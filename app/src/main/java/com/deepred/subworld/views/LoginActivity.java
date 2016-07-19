@@ -46,7 +46,8 @@ import static android.Manifest.permission.READ_CONTACTS;
 /**
  *
  */
-public class LoginActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, ICallbacks.IUserCallbacks {
+//public class LoginActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, ICallbacks.IUserCallbacks {
+public class LoginActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, ICallbacks.IChangeCallbacks<User> {
     private static final String TAG = "SW VIEWS LoginActivity ";
 
     /**
@@ -168,7 +169,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderManager.Lo
                         editor.putString(ICommon.EMAIL, email);
                         editor.putString(ICommon.PASSWORD, password);
                         // Commit the edits!
-                        editor.commit();
+                        editor.apply();
 
                     } else {
                         Log.d(TAG, "Login failed!");
@@ -194,7 +195,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderManager.Lo
     }
 
     @Override
-    public void onUserChange(User user) {
+    //public void onUserChange(User user) {
+    public void onChange(User user) {
         if(user == null || user.getName().isEmpty() || user.getChrType() == ICommon.CHRS_NOT_SET) {
             Intent intent = new Intent(getApplicationContext(), CharactersSelectionActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_HISTORY);

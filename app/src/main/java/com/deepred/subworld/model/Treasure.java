@@ -9,6 +9,7 @@ import java.util.Random;
  *
  */
 public class Treasure {
+    private String uid;
     private int type;
     private Date created;
     private Date obtained;
@@ -24,7 +25,8 @@ public class Treasure {
         init();*/
     }
 
-    public Treasure(int _type, String _owner, int _value) {
+    public Treasure(String _uid, int _type, String _owner, int _value) {
+        uid = _uid;
         type = _type;
         owner = _owner;
         value = _value;
@@ -100,5 +102,13 @@ public class Treasure {
 
     public void setValue(int value) {
         this.value = value;
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 }

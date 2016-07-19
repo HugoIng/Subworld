@@ -200,40 +200,40 @@ public class GameService extends IntentService implements IViewRangeListener {
                 DataManager.getInstance().checkName(name, new ICallbacks.INameCheckCallbacks() {
                     @Override
                     public void onValidUsername() {
-                        DataManager.getInstance().storeUsername(name, new ICallbacks.INameStoringCallbacks() {
+                        DataManager.getInstance().storeUsername(name, new ICallbacks.IStoreCallbacks() {
                             @Override
-                            public void onStored(boolean ok) {
-                                if (ok) {
-                                    User u = MyUserManager.getInstance().getUser();
-                                    String uid = DataManager.getInstance().getUid();
-                                    u.setUid(uid);
-                                    u.setName(name);
-                                    u.setChrType(chr_selected);
-                                    SharedPreferences prefs = ApplicationHolder.getApp().getPreferences();
-                                    u.setEmail(prefs.getString(ICommon.EMAIL, null));
-                                    addDefaultTreasure(u);
-                                    DataManager.getInstance().saveUser(u, new ICallbacks.IUserInitialStoreCallbacks() {
-                                        @Override
-                                        public void onUserCreationError() {
-                                            ResultReceiver rec = workIntent.getParcelableExtra(ICommon.RESULT_RECEIVER);
-                                            Bundle b = new Bundle();
-                                            b.putString(ICommon.MOTIVE, "Error storing user. Try again later.");
-                                            rec.send(Activity.RESULT_CANCELED, b);
-                                        }
+                            public void onSuccess() {
+                                User u = MyUserManager.getInstance().getUser();
+                                String uid = DataManager.getInstance().getUid();
+                                u.setUid(uid);
+                                u.setName(name);
+                                u.setChrType(chr_selected);
+                                SharedPreferences prefs = ApplicationHolder.getApp().getPreferences();
+                                u.setEmail(prefs.getString(ICommon.EMAIL, null));
+                                addDefaultTreasure(u);
+                                DataManager.getInstance().saveUser(u, new ICallbacks.IStoreCallbacks() {
+                                    @Override
+                                    public void onError() {
+                                        ResultReceiver rec = workIntent.getParcelableExtra(ICommon.RESULT_RECEIVER);
+                                        Bundle b = new Bundle();
+                                        b.putString(ICommon.MOTIVE, "Error storing user. Try again later.");
+                                        rec.send(Activity.RESULT_CANCELED, b);
+                                    }
 
-                                        @Override
-                                        public void onUserCreationSuccess() {
-                                            ResultReceiver rec = workIntent.getParcelableExtra(ICommon.RESULT_RECEIVER);
-                                            rec.send(Activity.RESULT_OK, null);
-                                        }
-                                    });
+                                    @Override
+                                    public void onSuccess() {
+                                        ResultReceiver rec = workIntent.getParcelableExtra(ICommon.RESULT_RECEIVER);
+                                        rec.send(Activity.RESULT_OK, null);
+                                    }
+                                });
+                            }
 
-                                } else {
-                                    ResultReceiver rec = workIntent.getParcelableExtra(ICommon.RESULT_RECEIVER);
-                                    Bundle b = new Bundle();
-                                    b.putString(ICommon.MOTIVE, "Error storing user name. Try again later.");
-                                    rec.send(Activity.RESULT_CANCELED, b);
-                                }
+                            @Override
+                            public void onError() {
+                                ResultReceiver rec = workIntent.getParcelableExtra(ICommon.RESULT_RECEIVER);
+                                Bundle b = new Bundle();
+                                b.putString(ICommon.MOTIVE, "Error storing user name. Try again later.");
+                                rec.send(Activity.RESULT_CANCELED, b);
                             }
                         });
                     }
@@ -487,9 +487,11 @@ public class GameService extends IntentService implements IViewRangeListener {
 
             if (elem instanceof MapRival) {
                 // Obtener el usuario de la BBDD
-                DataManager.getInstance().getUser(uid, new ICallbacks.IUserCallbacks() {
+                //DataManager.getInstance().getUser(uid, new ICallbacks.IUserCallbacks() {
+                DataManager.getInstance().getUser(uid, new ICallbacks.IChangeCallbacks<User>() {
                     @Override
-                    public void onUserChange(User user) {
+                    //public void onUserChange(User user) {
+                    public void onChange(User user) {
                         ((MapRival) elem).setUser(user);
                         boolean isVisible = applyVisibilityRules(myUser, user, distance);
                         Log.d(TAG, "checkVisibility on user: " + user.getUid() + " at distance: " + distance + " returns:" + isVisible);

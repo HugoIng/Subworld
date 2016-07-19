@@ -10,7 +10,8 @@ import java.util.ArrayList;
 public class MyUserManager {
     private static Object lock = new Object();
     private static volatile MyUserManager instance = null;
-    private ArrayList<ICallbacks.IUserCallbacks> activities;
+    //private ArrayList<ICallbacks.IUserCallbacks> activities;
+    private ArrayList<ICallbacks.IChangeCallbacks<User>> activities;
     private User user;
 
     private MyUserManager() {
@@ -31,11 +32,13 @@ public class MyUserManager {
         return localInstance;
     }
 
-    public void register4UserNotifications(ICallbacks.IUserCallbacks act) {
+    //public void register4UserNotifications(ICallbacks.IUserCallbacks act) {
+    public void register4UserNotifications(ICallbacks.IChangeCallbacks<User> act) {
         activities.add(act);
     }
 
-    public void unregister4UserNotifications(ICallbacks.IUserCallbacks act) {
+    //public void unregister4UserNotifications(ICallbacks.IUserCallbacks act) {
+    public void unregister4UserNotifications(ICallbacks.IChangeCallbacks<User> act) {
         if(activities.contains(act))
             activities.remove(act);
     }
@@ -51,8 +54,11 @@ public class MyUserManager {
     public void updateUser(User u) {
         user = u;
 
-        for (ICallbacks.IUserCallbacks act : activities) {
+        /*for (ICallbacks.IUserCallbacks act : activities) {
             act.onUserChange(user);
+        }*/
+        for (ICallbacks.IChangeCallbacks<User> act : activities) {
+            act.onChange(user);
         }
     }
 }

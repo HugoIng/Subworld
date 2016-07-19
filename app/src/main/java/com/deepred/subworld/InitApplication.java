@@ -22,7 +22,8 @@ import com.deepred.subworld.views.MapActivityImpl;
 /**
  * Created by aplicaty on 25/02/16.
  */
-public class InitApplication extends Activity implements ICallbacks.IUserCallbacks {
+//public class InitApplication extends Activity implements ICallbacks.IUserCallbacks {
+public class InitApplication extends Activity implements ICallbacks.IChangeCallbacks<User> {
     private static final String TAG = "SW InitAplication      ";
     private SubworldApplication app;
     private Bundle extraFromNotification = null;
@@ -116,7 +117,8 @@ public class InitApplication extends Activity implements ICallbacks.IUserCallbac
     }
 
     @Override
-    public void onUserChange(User user) {
+    //public void onUserChange(User user) {
+    public void onChange(User user) {
         if(user == null || user.getName().isEmpty() || user.getChrType() == ICommon.CHRS_NOT_SET) {
             Intent intent = new Intent(getApplicationContext(), CharactersSelectionActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NO_HISTORY);

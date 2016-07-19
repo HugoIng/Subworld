@@ -11,6 +11,7 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.deepred.subworld.ICommon;
 import com.deepred.subworld.engine.GameService;
@@ -54,12 +55,15 @@ public class StatusReceiver extends BroadcastReceiver implements Application.Act
 
         switch (action) {
             case ICommon.SET_GPS_STATUS:
+                Log.v(TAG, "onReceive: SET_GPS_STATUS");
                 LocationService.setRequiredGpsMode(intent.getBooleanExtra(ICommon.SET_GPS_STATUS, false));
                 break;
             case Intent.ACTION_SCREEN_OFF:
+                Log.v(TAG, "onReceive: SCREEN_OFF");
                 screenOff = true;
                 break;
             case Intent.ACTION_SCREEN_ON:
+                Log.v(TAG, "onReceive: SCREEN_ON");
                 screenOff = false;
                 if (!isAppInBackgroundState) {
                     LocationService.setRequiredGpsMode(true);

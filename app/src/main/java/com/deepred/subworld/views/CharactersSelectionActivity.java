@@ -29,7 +29,8 @@ import com.deepred.subworld.utils.MyUserManager;
 /**
  *
  */
-public class CharactersSelectionActivity extends AppCompatActivity implements ICallbacks.IUserCallbacks {
+//public class CharactersSelectionActivity extends AppCompatActivity implements ICallbacks.IUserCallbacks {
+public class CharactersSelectionActivity extends AppCompatActivity implements ICallbacks.IChangeCallbacks<User> {
 
     private final static String TAG = "SW VIEWS ChrSelectAct  ";
     int chr_selected = ICommon.CHRS_NOT_SET;
@@ -205,7 +206,8 @@ public class CharactersSelectionActivity extends AppCompatActivity implements IC
     }
 
     @Override
-    public void onUserChange(User user) {
+    //public void onUserChange(User user) {
+    public void onChange(User user) {
         Log.d("CHR CREATION SCR", "user changed");
     }
 

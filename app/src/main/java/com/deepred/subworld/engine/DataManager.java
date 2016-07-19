@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.deepred.subworld.ApplicationHolder;
 import com.deepred.subworld.ICommon;
+import com.deepred.subworld.model.Treasure;
 import com.deepred.subworld.model.User;
 import com.deepred.subworld.utils.ICallbacks;
 import com.deepred.subworld.utils.MyUserManager;
@@ -116,7 +117,8 @@ class DataManager implements GeoQueryEventListener {
 
     }
 
-    void getUser(final String _uid, final ICallbacks.IUserCallbacks cb) {
+    //void getUser(final String _uid, final ICallbacks.IUserCallbacks cb) {
+    void getUser(final String _uid, final ICallbacks.IChangeCallbacks<User> cb) {
         Firebase userRef = dbRef.child("users").child(_uid);
 
         // Attach an listener to read the data at our posts reference
@@ -127,10 +129,12 @@ class DataManager implements GeoQueryEventListener {
                 if (snapshot.hasChildren()) {
                     user = snapshot.getValue(User.class);
                     user.setUid(_uid);
-                    cb.onUserChange(user);
+                    //cb.onUserChange(user);
+                    cb.onChange(user);
                 } else {
                     Log.d(TAG, "Tenemos credenciales en el dispositivo, pero no hay registro de usuario en BBDD");
-                    cb.onUserChange(null);
+                    //cb.onUserChange(null);
+                    cb.onChange(user);
                 }
             }
 
@@ -163,37 +167,55 @@ class DataManager implements GeoQueryEventListener {
         });
     }
 
-    void storeUsername(String name, final ICallbacks.INameStoringCallbacks cb) {
+    void storeUsername(String name, final ICallbacks.IStoreCallbacks cb) {
         Firebase ref = dbRef.child("usernames");
         ref.push().setValue(name, new Firebase.CompletionListener() {
             @Override
             public void onComplete(FirebaseError firebaseError, Firebase firebase) {
                 if (firebaseError != null) {
                     Log.d(TAG, "Data could not be saved. " + firebaseError.getMessage());
-                    cb.onStored(false);
+                    cb.onError();
                 } else {
                     Log.d(TAG, "Data saved successfully.");
-                    cb.onStored(true);
+                    cb.onSuccess();
                 }
             }
         });
     }
 
-    void saveUser(User user, final ICallbacks.IUserInitialStoreCallbacks cb) {
+    void saveUser(User user, final ICallbacks.IStoreCallbacks cb) {
         Firebase ref = dbRef.child("users").child(user.getUid());
         ref.setValue(user, new Firebase.CompletionListener() {
             @Override
             public void onComplete(FirebaseError firebaseError, Firebase firebase) {
                 if (firebaseError != null) {
                     Log.d(TAG, "Data could not be saved. " + firebaseError.getMessage());
-                    cb.onUserCreationError();
+                    cb.onError();
                 } else {
                     Log.d(TAG, "Data saved successfully.");
-                    cb.onUserCreationSuccess();
+                    cb.onSuccess();
                 }
             }
         });
     }
+
+
+    void saveTreasure(Treasure treasure, final ICallbacks.IStoreCallbacks cb) {
+        Firebase ref = dbRef.child("treasures").child(treasure.getUid());
+        ref.setValue(treasure, new Firebase.CompletionListener() {
+            @Override
+            public void onComplete(FirebaseError firebaseError, Firebase firebase) {
+                if (firebaseError != null) {
+                    Log.d(TAG, "Data could not be saved. " + firebaseError.getMessage());
+                    cb.onError();
+                } else {
+                    Log.d(TAG, "Data saved successfully.");
+                    cb.onSuccess();
+                }
+            }
+        });
+    }
+
 
     /*
         rad is actual range radius in kilometers

@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -165,19 +166,19 @@ public class GoogleLocationServiceImpl extends LocationService implements Google
         sendLastLocation();
 
         // After 15 seconds, if no location is retrieved, go back to LOW_PRECISSION mode.
-        /*Handler handler = new Handler();
+        Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             public void run() {
                 if (lastLocation.getTime() > System.currentTimeMillis() - ICommon.DISABLE_GPS_IF_NO_LOCATIONS_AFTER)
-                    Log.d(TAG, "Gps desabilitado por obsolescencia");
+                    Log.d(TAG, "Gps desabilitado tras " + ICommon.DISABLE_GPS_IF_NO_LOCATIONS_AFTER + "ms sin recibir localizaciones");
                     switchProvider(false);
             }
-        }, ICommon.DISABLE_GPS_IF_NO_LOCATIONS_AFTER);*/
+        }, ICommon.DISABLE_GPS_IF_NO_LOCATIONS_AFTER);
     }
 
 
     private void sendLastLocation() {
-        Log.d(TAG, "Sending location: " + lastLocation.toString());
+        Log.d(TAG, "Sending NEW_LOCATION_FROM_SRV: " + lastLocation.toString());
         Intent mServiceIntent = new Intent(this, GameService.class);
         mServiceIntent.setData(Uri.parse(ICommon.NEW_LOCATION_FROM_SRV));
         mServiceIntent.putExtra(ICommon.NEW_LOCATION_FROM_SRV, lastLocation);
@@ -254,15 +255,11 @@ public class GoogleLocationServiceImpl extends LocationService implements Google
         stopLocationUpdates();
 
         // Si aun no hemos obtenido una localizacion, mantenemos low precission
-        boolean activateGPS;
-        if (useGps && lastLocation != null && lastLocation.getTime() != 0) {
-            activateGPS = true;
-        } else {
-            activateGPS = false;
-        }
+        boolean activateGPS = useGps && lastLocation != null && lastLocation.getTime() != 0;
 
         requestLocationUpdates(activateGPS);
 
+        Log.v(TAG, "switchProvider: sending SET_PROVIDER_INFO: " + activateGPS);
         Intent localIntent = new Intent(ICommon.SET_PROVIDER_INFO)
                 // Puts the status into the Intent
                 .putExtra(ICommon.SET_PROVIDER_INFO, activateGPS);
