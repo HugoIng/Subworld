@@ -200,8 +200,8 @@ class DataManager implements GeoQueryEventListener {
     }
 
 
-    void saveTreasure(Treasure treasure, final ICallbacks.IStoreCallbacks cb) {
-        Firebase ref = dbRef.child("treasures").child(treasure.getOwner());
+    void saveTreasure(final Treasure treasure, final ICallbacks.IStoreCallbacks cb) {
+        final Firebase ref = dbRef.child("treasures").push();
         ref.setValue(treasure, new Firebase.CompletionListener() {
             @Override
             public void onComplete(FirebaseError firebaseError, Firebase firebase) {
@@ -210,6 +210,7 @@ class DataManager implements GeoQueryEventListener {
                     cb.onError();
                 } else {
                     Log.d(TAG, "Data saved successfully.");
+                    treasure.setUid(ref.getKey());
                     cb.onSuccess();
                 }
             }

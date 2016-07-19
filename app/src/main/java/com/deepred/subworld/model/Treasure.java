@@ -9,6 +9,7 @@ import java.util.Random;
  *
  */
 public class Treasure {
+    private String uid;
     private int type;
     private Date created;
     private Date obtained;
@@ -100,5 +101,13 @@ public class Treasure {
 
     public void setValue(int value) {
         this.value = value;
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 }

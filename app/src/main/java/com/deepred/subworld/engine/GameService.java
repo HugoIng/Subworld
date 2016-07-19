@@ -166,10 +166,6 @@ public class GameService extends IntentService implements IViewRangeListener {
                     public void onLoginOk(boolean wait4User) {
                         Log.v(TAG, "Requesting login on firebase");
 
-                        /*Intent localIntent = new Intent(ICommon.BBDD_CONNECTED);
-                        // Broadcasts the Intent to receivers in this app.
-                        LocalBroadcastManager.getInstance(GameService.this).sendBroadcast(localIntent);*/
-
                         DataManager.getInstance().getUser();
 
                         // Notify the screen to update interface
@@ -203,29 +199,43 @@ public class GameService extends IntentService implements IViewRangeListener {
                         DataManager.getInstance().storeUsername(name, new ICallbacks.IStoreCallbacks() {
                             @Override
                             public void onSuccess() {
-                                User u = MyUserManager.getInstance().getUser();
+                                final User u = MyUserManager.getInstance().getUser();
                                 String uid = DataManager.getInstance().getUid();
                                 u.setUid(uid);
                                 u.setName(name);
                                 u.setChrType(chr_selected);
                                 SharedPreferences prefs = ApplicationHolder.getApp().getPreferences();
                                 u.setEmail(prefs.getString(ICommon.EMAIL, null));
-                                addDefaultTreasure(u);
-                                DataManager.getInstance().saveUser(u, new ICallbacks.IStoreCallbacks() {
+                                addDefaultTreasures(u, new ICallbacks.IStoreCallbacks() {
                                     @Override
                                     public void onError() {
                                         ResultReceiver rec = workIntent.getParcelableExtra(ICommon.RESULT_RECEIVER);
                                         Bundle b = new Bundle();
-                                        b.putString(ICommon.MOTIVE, "Error storing user. Try again later.");
+                                        b.putString(ICommon.MOTIVE, "Error storing treasures. Try again later.");
                                         rec.send(Activity.RESULT_CANCELED, b);
                                     }
 
                                     @Override
                                     public void onSuccess() {
-                                        ResultReceiver rec = workIntent.getParcelableExtra(ICommon.RESULT_RECEIVER);
-                                        rec.send(Activity.RESULT_OK, null);
+
+                                        DataManager.getInstance().saveUser(u, new ICallbacks.IStoreCallbacks() {
+                                            @Override
+                                            public void onError() {
+                                                ResultReceiver rec = workIntent.getParcelableExtra(ICommon.RESULT_RECEIVER);
+                                                Bundle b = new Bundle();
+                                                b.putString(ICommon.MOTIVE, "Error storing user. Try again later.");
+                                                rec.send(Activity.RESULT_CANCELED, b);
+                                            }
+
+                                            @Override
+                                            public void onSuccess() {
+                                                ResultReceiver rec = workIntent.getParcelableExtra(ICommon.RESULT_RECEIVER);
+                                                rec.send(Activity.RESULT_OK, null);
+                                            }
+                                        });
                                     }
                                 });
+
                             }
 
                             @Override
@@ -273,12 +283,32 @@ public class GameService extends IntentService implements IViewRangeListener {
         }
     }
 
-    private void addDefaultTreasure(User user) {
-        //Treasure
-        String uid = user.getUid();
-        Treasure t = new Treasure(uid);
-        String treasureId = uid + "_" + t.getCreated().getTime();
-        user.getBackpack().put(treasureId, t);
+    private void addDefaultTreasures(final User user, final ICallbacks.IStoreCallbacks cb) {
+        final Treasure t = new Treasure(user.getUid());
+        DataManager.getInstance().saveTreasure(t, new ICallbacks.IStoreCallbacks() {
+            @Override
+            public void onError() {
+                cb.onError();
+            }
+
+            @Override
+            public void onSuccess() {
+                final Treasure t2 = new Treasure(user.getUid());
+                DataManager.getInstance().saveTreasure(t2, new ICallbacks.IStoreCallbacks() {
+                    @Override
+                    public void onError() {
+                        cb.onError();
+                    }
+
+                    @Override
+                    public void onSuccess() {
+                        user.getBackpack().put(t.getUid(), t);
+                        user.getBackpack().put(t2.getUid(), t2);
+                        cb.onSuccess();
+                    }
+                });
+            }
+        });
     }
 
 
