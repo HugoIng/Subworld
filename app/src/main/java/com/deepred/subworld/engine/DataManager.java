@@ -201,7 +201,7 @@ class DataManager implements GeoQueryEventListener {
 
 
     void saveTreasure(Treasure treasure, final ICallbacks.IStoreCallbacks cb) {
-        Firebase ref = dbRef.child("treasures").child(treasure.getUid());
+        Firebase ref = dbRef.child("treasures").child(treasure.getOwner());
         ref.setValue(treasure, new Firebase.CompletionListener() {
             @Override
             public void onComplete(FirebaseError firebaseError, Firebase firebase) {
