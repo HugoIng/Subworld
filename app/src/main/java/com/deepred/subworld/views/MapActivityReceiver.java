@@ -67,6 +67,7 @@ public class MapActivityReceiver extends BroadcastReceiver {
                 break;
             case ICommon.SHOW_ACTION_SCREEN:
                 Log.v(TAG, "onReceive: SHOW_ACTION_SCREEN");
+                String id = intent.getStringExtra(ICommon.UID);
                 //boolean prov = intent.getBooleanExtra(ICommon.SET_PROVIDER_INFO, false);
                 act.showActionScreen();
                 break;

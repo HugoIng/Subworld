@@ -1,7 +1,6 @@
 package com.deepred.subworld.views;
 
 import android.content.Context;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,9 +11,12 @@ import android.widget.TextView;
 
 import com.deepred.subworld.ICommon;
 import com.deepred.subworld.R;
+import com.deepred.subworld.model.Treasure;
 import com.deepred.subworld.model.User;
 import com.deepred.subworld.utils.Fx;
 import com.deepred.subworld.utils.MyUserManager;
+
+import java.util.Map;
 
 
 /**
@@ -23,10 +25,10 @@ import com.deepred.subworld.utils.MyUserManager;
 public class MenuAdapter extends RecyclerView.Adapter<MenuAdapter.ViewHolder> {
 
     private static final int TYPE_HEADER = 0;  // Declaring Variable to Understand which View is being worked on
-    private static final int TYPE_ITEM = 1;
-    private static final int TYPE_STATS = 2;
-    private static final int TYPE_LEVEL = 3;
-    private static final int TYPE_OPTIONS = 4;
+    private static final int TYPE_STATS = 1;
+    private static final int TYPE_LEVEL = 2;
+    private static final int TYPE_OPTIONS = 3;
+    private static final int TYPE_ITEM = 4;
 
     private String mNavTitles[]; // String Array to store the passed titles Values
     private int mIcons[];       // Int Array to store the passed icons resource values
@@ -34,7 +36,7 @@ public class MenuAdapter extends RecyclerView.Adapter<MenuAdapter.ViewHolder> {
     //private AppCompatActivity ctx;
     private User usr;
 
-    MenuAdapter(AppCompatActivity _ctx) {
+    MenuAdapter(/*AppCompatActivity _ctx*/) {
         String titles[] = {"Backpack", "Hidden"/*, "Thefts", "Lost"*/};
         int icons[] = {android.R.drawable.ic_media_play, android.R.drawable.ic_media_play/*, android.R.drawable.ic_media_play, android.R.drawable.ic_media_play*/};
         //ctx = _ctx;
@@ -82,22 +84,35 @@ public class MenuAdapter extends RecyclerView.Adapter<MenuAdapter.ViewHolder> {
     // which view type is being created 1 for item row
     @Override
     public void onBindViewHolder(MenuAdapter.ViewHolder holder, int position) {
-        if(holder.Holderid == 0) {
+        if (holder.Holderid == TYPE_HEADER) {
             holder.profile.setImageResource(profile);           // Similarly we set the resources for header view
             holder.Name.setText(usr.getName());
             holder.email.setText(usr.getEmail());
             holder.rank.setText(usr.getRank());
-        } else if (holder.Holderid == 1) {                              // as the list view is going to be called after the header view so we decrement the
+        } else if (holder.Holderid >= TYPE_ITEM) {                              // as the list view is going to be called after the header view so we decrement the
             // position by 1 and pass it to the holder while setting the text and image
             holder.textView.setText(mNavTitles[position - 1]); // Setting the Text with the array of our Titles
             holder.imageView.setImageResource(mIcons[position - 1]);// Settimg the image with array of our icons
-            holder.textQuantity.setText("2");
-            holder.textValue.setText("val");
-        } else if(holder.Holderid == 2){
 
-        } else if(holder.Holderid == 3){
+            Map<String, Treasure> ref;
+            if (position == 1) {
+                ref = usr.getBackpack();
+            } else {
+                ref = usr.getHidden();
+            }
+            int tam = ref.size();
+            holder.textQuantity.setText(Integer.toString(tam));
 
-        } else if(holder.Holderid == 4){
+            int value = 0;
+            for (Treasure t : ref.values()) {
+                value += t.getValue();
+            }
+            holder.textValue.setText(Integer.toString(value));
+        } else if (holder.Holderid == TYPE_STATS) {
+
+        } else if (holder.Holderid == TYPE_LEVEL) {
+
+        } else if (holder.Holderid == TYPE_OPTIONS) {
 
         }
     }
@@ -115,7 +130,16 @@ public class MenuAdapter extends RecyclerView.Adapter<MenuAdapter.ViewHolder> {
     // Witht the following method we check what type of view is being passed
     @Override
     public int getItemViewType(int position) {
-        return position;
+        if (position == 0)
+            return TYPE_HEADER;
+        else if (position == 1 || position == 2)
+            return TYPE_ITEM;
+        else if (position == 3)
+            return TYPE_STATS;
+        else if (position == 4)
+            return TYPE_LEVEL;
+        else
+            return TYPE_OPTIONS;
     }
 
 
@@ -126,17 +150,17 @@ public class MenuAdapter extends RecyclerView.Adapter<MenuAdapter.ViewHolder> {
     public static class ViewHolder extends RecyclerView.ViewHolder {
         int Holderid;
 
+        // Header
+        ImageView profile;
+        TextView Name;
+        TextView email;
+        TextView rank;
         // Item
         TextView textView;
         LinearLayout detail;
         TextView textQuantity;
         TextView textValue;
         ImageView imageView;
-        // Header
-        ImageView profile;
-        TextView Name;
-        TextView email;
-        TextView rank;
         // Stats
 
         // Levels
@@ -156,6 +180,7 @@ public class MenuAdapter extends RecyclerView.Adapter<MenuAdapter.ViewHolder> {
                     email = (TextView) itemView.findViewById(R.id.email);       // Creating Text View object from header.xml for email
                     profile = (ImageView) itemView.findViewById(R.id.imageProfile);// Creating Image view object from header.xml for profile pic
                     rank = (TextView) itemView.findViewById(R.id.rank);
+                    Holderid = TYPE_HEADER;
                     break;
                 case TYPE_ITEM:
                     textView = (TextView) itemView.findViewById(R.id.rowText); // Creating TextView object with the id of textView from item_row.xml
@@ -178,19 +203,21 @@ public class MenuAdapter extends RecyclerView.Adapter<MenuAdapter.ViewHolder> {
                     });
 
                     detail.setVisibility(View.GONE);
+                    Holderid = TYPE_ITEM;
                     break;
                 case TYPE_STATS:
 
+                    Holderid = TYPE_STATS;
                     break;
                 case TYPE_LEVEL:
 
+                    Holderid = TYPE_LEVEL;
                     break;
                 case TYPE_OPTIONS:
 
+                    Holderid = TYPE_OPTIONS;
                     break;
             }
-
-            Holderid = viewType;
         }
 
         private void toggleDetail(Context ctx) {

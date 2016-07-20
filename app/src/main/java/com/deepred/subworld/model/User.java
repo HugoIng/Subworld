@@ -41,6 +41,10 @@ public class User {
         init();
     }
 
+    public static String createTreasureId(String uid, Date fecha) {
+        return uid + "_" + fecha.getTime();
+    }
+
     private void init() {
         skills = new Skills();
         skills.setSkills(ICommon.skillsTable[chrType]);
@@ -50,10 +54,6 @@ public class User {
         lost = new HashMap<>();
         failedRetrievals = new HashMap<>();
         thefts = new HashMap<>();
-    }
-
-    public static String createTreasureId(String uid, Date fecha) {
-        return uid + "_" + fecha.getTime();
     }
 
     public String getUid() {
@@ -137,7 +137,7 @@ public class User {
         this.skills = skills;
     }
 
-    public int getRank() {
+    public String getRank() {
         return this.skills.getRank();
     }
 }

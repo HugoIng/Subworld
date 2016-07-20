@@ -60,7 +60,7 @@ public abstract class AbstractMapActivity extends AppCompatActivity {
         mRecyclerView = (RecyclerView) findViewById(R.id.RecyclerView); // Assigning the RecyclerView Object to the xml View
         mRecyclerView.setHasFixedSize(true);                            // Letting the system know that the list objects are of fixed size
 
-        mAdapter = new MenuAdapter(this);       // Creating the Adapter of MenuAdapter class(which we are going to see in a bit)
+        mAdapter = new MenuAdapter(/*this*/);       // Creating the Adapter of MenuAdapter class(which we are going to see in a bit)
         // And passing the titles,icons,header view name, header view email,
         // and header view profile picture
 

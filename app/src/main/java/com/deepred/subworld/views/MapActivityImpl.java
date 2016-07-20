@@ -341,6 +341,13 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
                     mServiceIntent.setData(Uri.parse(ICommon.MAPELEMENT_SELECTED));
                     mServiceIntent.putExtra(ICommon.UID, entry.getKey());
                     startService(mServiceIntent); // Starts the IntentService
+
+
+                    /*UserResult nextFrag= new UserResult();
+                    this.getFragmentManager().beginTransaction()
+                            .replace(R.id.content_frame, nextFrag, null)
+                            .addToBackStack(null)
+                            .commit();*/
                 }
             }
         }
