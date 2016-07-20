@@ -96,4 +96,11 @@ public class Skills {
     public void setDefense(Skill defense) {
         this.defense = defense;
     }
+
+    public int getRank() {
+        int rank = this.finding.getValue() + this.hiding.getValue() + this.opening.getValue() +
+        this.watching.getValue() + this.stealth.getValue() + this.stealing.getValue() +
+        this.defense.getValue();
+        return rank/7 - 6;
+    }
 }

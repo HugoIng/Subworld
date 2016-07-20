@@ -136,4 +136,8 @@ public class User {
     public void setSkills(Skills skills) {
         this.skills = skills;
     }
+
+    public int getRank() {
+        return this.skills.getRank();
+    }
 }
