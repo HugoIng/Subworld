@@ -9,6 +9,7 @@ import android.util.Log;
 
 import com.deepred.subworld.ApplicationHolder;
 import com.deepred.subworld.ICommon;
+import com.deepred.subworld.SubworldApplication;
 
 
 /**
@@ -67,7 +68,8 @@ public abstract class LocationService extends Service {
 
         Log.d(TAG, "Service Created");
 
-        ApplicationHolder.getApp().setLocationService(this, handler);
+        ((SubworldApplication)getApplication()).setLocationService(this, handler);
+        //ApplicationHolder.getApp().setLocationService(this, handler);
 
         evaluateGps();
     }

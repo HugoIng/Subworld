@@ -34,9 +34,12 @@ class DataManager implements GeoQueryEventListener {
     private GeoQuery geoQuery;
     private String uid = null;
     private User user = null;
+    private GameService gm;
+    private ViewRangeManager viewRange;
 
     private DataManager(){
-        Firebase.setAndroidContext(ApplicationHolder.getApp().getApplicationContext());
+        //Firebase.setAndroidContext(ApplicationHolder.getApp().getApplicationContext());
+        Firebase.setAndroidContext(gm);
         dbRef = new Firebase(ICommon.FIREBASE_REF);
         dbGeoRef = new GeoFire(new Firebase(ICommon.GEO_FIRE_REF));
         geoQuery = null;
@@ -51,6 +54,11 @@ class DataManager implements GeoQueryEventListener {
             }
         }
         return INSTANCE;
+    }
+
+    public void setContext(GameService ctx, ViewRangeManager _viewRange) {
+        gm = ctx;
+        viewRange = _viewRange;
     }
 
     Firebase getDbRef() {
@@ -117,7 +125,6 @@ class DataManager implements GeoQueryEventListener {
 
     }
 
-    //void getUser(final String _uid, final ICallbacks.IUserCallbacks cb) {
     void getUser(final String _uid, final ICallbacks.IChangeCallbacks<User> cb) {
         Firebase userRef = dbRef.child("users").child(_uid);
 
@@ -294,20 +301,20 @@ class DataManager implements GeoQueryEventListener {
             type = ICommon.LOCATION_TYPE_RIVAL;
         }
         String _uid = stripPrefix(id);
-        ViewRangeManager.getInstance().add(_uid, type, geoLocation, _uid.equals(uid));
+        viewRange.add(_uid, type, geoLocation, _uid.equals(uid));
     }
 
     @Override
     public void onKeyExited(String id) {
         Log.d(TAG, "onKeyExited: " + id);
-        ViewRangeManager.getInstance().remove(stripPrefix(id));
+        viewRange.remove(stripPrefix(id));
     }
 
     @Override
     public void onKeyMoved(String id, GeoLocation geoLocation) {
         Log.d(TAG, "onKeyMoved: " + id);
         String _uid = stripPrefix(id);
-        ViewRangeManager.getInstance().add(_uid, ICommon.LOCATION_TYPE_RIVAL, geoLocation, _uid.equals(uid));
+        viewRange.add(_uid, ICommon.LOCATION_TYPE_RIVAL, geoLocation, _uid.equals(uid));
     }
 
     private String stripPrefix(String id) {
@@ -323,7 +330,7 @@ class DataManager implements GeoQueryEventListener {
     @Override
     public void onGeoQueryReady() {
         Log.d(TAG, "onGeoQueryReady");
-        ViewRangeManager.getInstance().queryCompleted();
+        viewRange.queryCompleted();
     }
 
     @Override

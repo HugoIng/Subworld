@@ -25,7 +25,7 @@ public class BaseNotificationBuilder implements INotificationBuilder {
 
     protected BaseNotificationBuilder(){
         //noticationStack = new ArrayList<>();
-        context = ApplicationHolder.getApp();
+        //context = ApplicationHolder.getApp();
         notificationManager = (android.app.NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
     }
 
@@ -60,9 +60,9 @@ public class BaseNotificationBuilder implements INotificationBuilder {
     }
 
     public void vibrate() {
-        SubworldApplication app = ApplicationHolder.getApp();
-        Vibrator v = (Vibrator) app.getSystemService(app.getApplicationContext().VIBRATOR_SERVICE);
-        if (v.hasVibrator()) {
+        //SubworldApplication app = ApplicationHolder.getApp();
+        //Vibrator v = (Vibrator) app.getSystemService(app.getApplicationContext().VIBRATOR_SERVICE);
+        /*if (v.hasVibrator()) {
             // The following numbers represent millisecond lengths
             int dot = 200;      // Length of a Morse Code "dot" in milliseconds
             int dash = 500;     // Length of a Morse Code "dash" in milliseconds
@@ -74,15 +74,15 @@ public class BaseNotificationBuilder implements INotificationBuilder {
                     dot, short_gap, dot,
             };
             v.vibrate(pattern, -1);
-        }
+        }*/
     }
 
     public void ring(String path) {
         try {
             Uri notification = Uri.parse(path);
-            SubworldApplication app = ApplicationHolder.getApp();
-            Ringtone r = RingtoneManager.getRingtone(app.getApplicationContext(), notification);
-            r.play();
+            //SubworldApplication app = ApplicationHolder.getApp();
+            //Ringtone r = RingtoneManager.getRingtone(app.getApplicationContext(), notification);
+            //r.play();
         } catch (Exception e) {
             e.printStackTrace();
         }

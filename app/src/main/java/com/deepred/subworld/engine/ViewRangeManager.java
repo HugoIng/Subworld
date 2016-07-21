@@ -23,6 +23,7 @@ public class ViewRangeManager {
     private static Object lock = new Object();
     private static volatile ViewRangeManager instance = null;
     private GameService gm;
+    private DataManager dataManager;
     private MapElements elems;
     private double actualRange = 200; // Range in meters
     private float zoom;
@@ -49,8 +50,9 @@ public class ViewRangeManager {
         return localInstance;
     }
 
-    public void setContext(GameService ctx) {
+    public void setContext(GameService ctx, DataManager _dataManager) {
         gm = ctx;
+        dataManager = _dataManager;
     }
 
 
@@ -58,7 +60,7 @@ public class ViewRangeManager {
     * Request an update to the DDBB with the new user position
      */
     public void update(Location loc) {
-        DataManager.getInstance().queryLocations(loc, actualRange / 1000);
+        dataManager.queryLocations(loc, actualRange / 1000);
     }
 
     public void queryCompleted() {

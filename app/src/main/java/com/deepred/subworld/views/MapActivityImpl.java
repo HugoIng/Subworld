@@ -16,6 +16,7 @@ import android.widget.ImageView;
 import com.deepred.subworld.ApplicationHolder;
 import com.deepred.subworld.ICommon;
 import com.deepred.subworld.R;
+import com.deepred.subworld.SubworldApplication;
 import com.deepred.subworld.engine.GameService;
 import com.deepred.subworld.model.MapMarker;
 import com.mapbox.mapboxsdk.annotations.Icon;
@@ -109,7 +110,8 @@ public class MapActivityImpl extends AbstractMapActivity implements MapboxMap.On
             updateMyMarker(pendingMyMark);
             pendingMyMark = null;
         } else {
-            Location loc = ApplicationHolder.getApp().getLastKnownLocation();
+            //Location loc = ApplicationHolder.getApp().getLastKnownLocation();
+            Location loc = ((SubworldApplication)getApplication()).getLastKnownLocation();
             Log.d(TAG, "Set initial myMark with lastLocation " + loc.toString());
             updateMyMarker(loc);
         }

@@ -12,6 +12,7 @@ import android.util.Log;
 
 import com.deepred.subworld.ApplicationHolder;
 import com.deepred.subworld.ICommon;
+import com.deepred.subworld.SubworldApplication;
 import com.deepred.subworld.model.MapElement;
 import com.deepred.subworld.model.MapRival;
 import com.deepred.subworld.model.MapTreasure;
@@ -39,6 +40,7 @@ public class GameService extends IntentService implements IViewRangeListener {
     private boolean mapActivityIsInBackground;
 
     private ViewRangeManager viewRange;
+    private DataManager dataManager;
 
     // Pending locations, etc.
     private boolean hasMyLocationPending = false;
@@ -50,17 +52,20 @@ public class GameService extends IntentService implements IViewRangeListener {
     private ArrayList<String> removesPendingTreasures = new ArrayList<>();
     private boolean hasZoomPending = false;
     private float zoomPending;
-    private boolean hasProvPending = false;
-    private boolean provPending;
+    //private boolean hasProvPending = false;
+    //private boolean provPending;
 
     public GameService() {
         super(TAG);
         mapActivityIsInBackground = false;
         viewRange = ViewRangeManager.getInstance();
-        viewRange.setContext(this);
+        dataManager = DataManager.getInstance();
+        viewRange.setContext(this, dataManager);
+        dataManager.setContext(this, viewRange);
 
         // Get initial location from localStorage or default
-        lastLocation = ApplicationHolder.getApp().getLastKnownLocation();
+        //lastLocation = ApplicationHolder.getApp().getLastKnownLocation();
+        lastLocation = ((SubworldApplication)getApplication()).getLastKnownLocation();
     }
 
     @Override
@@ -87,7 +92,8 @@ public class GameService extends IntentService implements IViewRangeListener {
                 if (isBetterLocation(location)) {
                     lastLocation = location;
                     // Store location
-                    ApplicationHolder.getApp().setLastKnownLocation(location);
+                    //ApplicationHolder.getApp().setLastKnownLocation(location);
+                    ((SubworldApplication)getApplication()).setLastKnownLocation(location);
                     // Deal with new location: DDBB query to update the rivals that are within are view range
                     viewRange.update(lastLocation);
                 }
@@ -159,13 +165,13 @@ public class GameService extends IntentService implements IViewRangeListener {
                 final String screen_context = workIntent.getStringExtra(ICommon.SCREEN_CONTEXT);
 
                 // Login with credentials
-                DataManager.getInstance().loginOrRegister(email, password, new ICallbacks.ILoginCallbacks() {
+                dataManager.loginOrRegister(email, password, new ICallbacks.ILoginCallbacks() {
 
                     @Override
                     public void onLoginOk(boolean wait4User) {
                         Log.v(TAG, "Requesting login on firebase");
 
-                        DataManager.getInstance().getUser();
+                        dataManager.getUser();
 
                         // Notify the screen to update interface
                         ResultReceiver rec = workIntent.getParcelableExtra(ICommon.RESULT_RECEIVER);
@@ -192,18 +198,19 @@ public class GameService extends IntentService implements IViewRangeListener {
                 final String name = workIntent.getStringExtra(ICommon.NAME);
                 final int chr_selected = workIntent.getIntExtra(ICommon.CHR_TYPE, ICommon.CHRS_NOT_SET);
 
-                DataManager.getInstance().checkName(name, new ICallbacks.INameCheckCallbacks() {
+                dataManager.checkName(name, new ICallbacks.INameCheckCallbacks() {
                     @Override
                     public void onValidUsername() {
-                        DataManager.getInstance().storeUsername(name, new ICallbacks.IStoreCallbacks() {
+                        dataManager.storeUsername(name, new ICallbacks.IStoreCallbacks() {
                             @Override
                             public void onSuccess() {
                                 final User u = MyUserManager.getInstance().getUser();
-                                String uid = DataManager.getInstance().getUid();
+                                String uid = dataManager.getUid();
                                 u.setUid(uid);
                                 u.setName(name);
                                 u.setChrType(chr_selected);
-                                SharedPreferences prefs = ApplicationHolder.getApp().getPreferences();
+                                //SharedPreferences prefs = ApplicationHolder.getApp().getPreferences();
+                                SharedPreferences prefs = ((SubworldApplication)getApplication()).getPreferences();
                                 u.setEmail(prefs.getString(ICommon.EMAIL, null));
 
                                 // Generate and save 2 treasures randomly
@@ -219,7 +226,7 @@ public class GameService extends IntentService implements IViewRangeListener {
                                     @Override
                                     public void onSuccess() {
                                         // Save user changes
-                                        DataManager.getInstance().saveUser(u, new ICallbacks.IStoreCallbacks() {
+                                        dataManager.saveUser(u, new ICallbacks.IStoreCallbacks() {
                                             @Override
                                             public void onError() {
                                                 ResultReceiver rec = workIntent.getParcelableExtra(ICommon.RESULT_RECEIVER);
@@ -295,7 +302,7 @@ public class GameService extends IntentService implements IViewRangeListener {
 
     private void addDefaultTreasures(final User user, final ICallbacks.IStoreCallbacks cb) {
         final Treasure t = new Treasure(user.getUid());
-        DataManager.getInstance().saveTreasure(t, new ICallbacks.IStoreCallbacks() {
+        dataManager.saveTreasure(t, new ICallbacks.IStoreCallbacks() {
             @Override
             public void onError() {
                 cb.onError();
@@ -304,7 +311,7 @@ public class GameService extends IntentService implements IViewRangeListener {
             @Override
             public void onSuccess() {
                 final Treasure t2 = new Treasure(user.getUid());
-                DataManager.getInstance().saveTreasure(t2, new ICallbacks.IStoreCallbacks() {
+                dataManager.saveTreasure(t2, new ICallbacks.IStoreCallbacks() {
                     @Override
                     public void onError() {
                         cb.onError();
@@ -537,7 +544,7 @@ public class GameService extends IntentService implements IViewRangeListener {
             if (elem instanceof MapRival) {
                 // Obtener el usuario de la BBDD
                 //DataManager.getInstance().getUser(uid, new ICallbacks.IUserCallbacks() {
-                DataManager.getInstance().getUser(uid, new ICallbacks.IChangeCallbacks<User>() {
+                dataManager.getUser(uid, new ICallbacks.IChangeCallbacks<User>() {
                     @Override
                     //public void onUserChange(User user) {
                     public void onChange(User user) {

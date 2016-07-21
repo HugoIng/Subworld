@@ -33,6 +33,7 @@ import android.widget.TextView;
 import com.deepred.subworld.ApplicationHolder;
 import com.deepred.subworld.ICommon;
 import com.deepred.subworld.R;
+import com.deepred.subworld.SubworldApplication;
 import com.deepred.subworld.engine.GameService;
 import com.deepred.subworld.model.User;
 import com.deepred.subworld.utils.ICallbacks;
@@ -67,7 +68,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderManager.Lo
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        prefs = ApplicationHolder.getApp().getPreferences();
+        //prefs = ApplicationHolder.getApp().getPreferences();
+        prefs = ((SubworldApplication)getApplication()).getPreferences();
 
         MyUserManager.getInstance().register4UserNotifications(this);
 

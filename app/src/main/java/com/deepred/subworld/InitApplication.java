@@ -35,7 +35,7 @@ public class InitApplication extends Activity implements ICallbacks.IChangeCallb
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         app = (SubworldApplication)getApplication();
-        ApplicationHolder.setApp(app);
+        //ApplicationHolder.setApp(app);
 
         if (app.getLocationService() == null) {
             startService(new Intent(this, GoogleLocationServiceImpl.class));
