@@ -41,7 +41,7 @@
     <string name="loc_apis_conn_err">Google Loc Apis connection error</string>
     <string name="statistics">Statistics</string>
     <string name="treasures_found_retrieved">Treasures found/retrieved:</string>
-    <string name="robbery_succesful_failed">% Robbery succesful/failed:</string>
+    <string name="robbery_succesful_failed">Thefts succesful/failed:</string>
     <string name="treasures_lost">Treasures lost:</string>
     <string name="defence_succesful_failed">% Defence succesful/failed:</string>
 </resources>

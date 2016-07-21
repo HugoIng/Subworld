@@ -109,7 +109,11 @@ public class MenuAdapter extends RecyclerView.Adapter<MenuAdapter.ViewHolder> {
             }
             holder.textValue.setText(Integer.toString(value));
         } else if (holder.Holderid == TYPE_STATS) {
-
+            int retrieved = usr.getBackpack().size() + usr.getHidden().size() - ICommon.INITIAL_TREASURES;
+            int found = retrieved + usr.getStolenFromMe().size() + usr.getFailedRetrievals().size();
+            holder.found_retrieved.setText(found + "/" + retrieved);
+            holder.robberies.setText(usr.getSuccessfulThefts() + "/" + usr.getFailedThefts());
+            holder.defence.setText(usr.getSuccessfulDefence() + "/" + usr.getFailedDefence());
         } else if (holder.Holderid == TYPE_LEVEL) {
 
         } else if (holder.Holderid == TYPE_OPTIONS) {
@@ -162,7 +166,9 @@ public class MenuAdapter extends RecyclerView.Adapter<MenuAdapter.ViewHolder> {
         TextView textValue;
         ImageView imageView;
         // Stats
-
+        TextView found_retrieved;
+        TextView robberies;
+        TextView defence;
         // Levels
 
         // Options
@@ -206,7 +212,9 @@ public class MenuAdapter extends RecyclerView.Adapter<MenuAdapter.ViewHolder> {
                     Holderid = TYPE_ITEM;
                     break;
                 case TYPE_STATS:
-
+                    found_retrieved = (TextView) itemView.findViewById(R.id.stat1);
+                    robberies = (TextView) itemView.findViewById(R.id.stat3);
+                    defence = (TextView) itemView.findViewById(R.id.stat4);
                     Holderid = TYPE_STATS;
                     break;
                 case TYPE_LEVEL:

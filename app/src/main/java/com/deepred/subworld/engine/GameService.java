@@ -10,7 +10,6 @@ import android.os.ResultReceiver;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.deepred.subworld.ApplicationHolder;
 import com.deepred.subworld.ICommon;
 import com.deepred.subworld.SubworldApplication;
 import com.deepred.subworld.model.MapElement;
@@ -61,7 +60,7 @@ public class GameService extends IntentService implements IViewRangeListener {
         viewRange = ViewRangeManager.getInstance();
         dataManager = DataManager.getInstance();
         viewRange.setContext(this, dataManager);
-        dataManager.setContext(this, viewRange);
+        dataManager.setContext(getBaseContext(), viewRange);
 
         // Get initial location from localStorage or default
         //lastLocation = ApplicationHolder.getApp().getLastKnownLocation();

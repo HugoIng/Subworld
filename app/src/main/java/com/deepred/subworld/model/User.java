@@ -16,9 +16,15 @@ public class User {
     private int chrType;
     private Map<String, Treasure> backpack; // Represent treasures carried by the user
     private Map<String, Treasure> hidden; // Represent treasures hidden and actually owned by the user
-    private Map<String, Treasure> lost; // Represent treasures lost by the user. This cannot be recovered by the same user
+    //private Map<String, Treasure> lost; // Represent treasures lost by the user. These cannot be recovered by the same user
     private Map<String, Treasure> failedRetrievals; // Represent failed attempts to get treasures. These are eliminated in 3 hours and the user can retry.
-    private Map<String, Treasure> thefts;
+    private Map<String, Treasure> stolenFromMe;
+
+    private int successfulThefts;
+    private int failedThefts;
+    private int successfulDefence;
+    private int failedDefence;
+
     private Skills skills;
 
 
@@ -51,9 +57,13 @@ public class User {
 
         backpack = new HashMap<>();
         hidden = new HashMap<>();
-        lost = new HashMap<>();
         failedRetrievals = new HashMap<>();
-        thefts = new HashMap<>();
+        stolenFromMe = new HashMap<>();
+
+        successfulThefts = 0;
+        failedThefts = 0;
+        successfulDefence = 0;
+        failedDefence = 0;
     }
 
     public String getUid() {
@@ -105,13 +115,13 @@ public class User {
         this.hidden = hidden;
     }
 
-    public Map<String, Treasure> getLost() {
+    /*public Map<String, Treasure> getLost() {
         return lost;
     }
 
     public void setLost(HashMap<String, Treasure> lost) {
         this.lost = lost;
-    }
+    }*/
 
     public Map<String, Treasure> getFailedRetrievals() {
         return failedRetrievals;
@@ -121,12 +131,16 @@ public class User {
         this.failedRetrievals = failedRetrievals;
     }
 
-    public Map<String, Treasure> getThefts() {
-        return thefts;
+    public Map<String, Treasure> getStolenFromMe() {
+        return stolenFromMe;
     }
 
-    public void setThefts(HashMap<String, Treasure> thefts) {
-        this.thefts = thefts;
+    public void setStolenFromMe(Map<String, Treasure> stolenFromMe) {
+        this.stolenFromMe = stolenFromMe;
+    }
+
+    public void setStolenFromMe(HashMap<String, Treasure> stolenFromMe) {
+        this.stolenFromMe = stolenFromMe;
     }
 
     public Skills getSkills() {
@@ -139,5 +153,37 @@ public class User {
 
     public String getRank() {
         return this.skills.getRank();
+    }
+
+    public int getSuccessfulThefts() {
+        return successfulThefts;
+    }
+
+    public void setSuccessfulThefts(int successfulThefts) {
+        this.successfulThefts = successfulThefts;
+    }
+
+    public int getFailedThefts() {
+        return failedThefts;
+    }
+
+    public void setFailedThefts(int failedThefts) {
+        this.failedThefts = failedThefts;
+    }
+
+    public int getSuccessfulDefence() {
+        return successfulDefence;
+    }
+
+    public void setSuccessfulDefence(int successfulDefence) {
+        this.successfulDefence = successfulDefence;
+    }
+
+    public int getFailedDefence() {
+        return failedDefence;
+    }
+
+    public void setFailedDefence(int failedDefence) {
+        this.failedDefence = failedDefence;
     }
 }

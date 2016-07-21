@@ -1,9 +1,9 @@
 package com.deepred.subworld.engine;
 
+import android.content.Context;
 import android.location.Location;
 import android.util.Log;
 
-import com.deepred.subworld.ApplicationHolder;
 import com.deepred.subworld.ICommon;
 import com.deepred.subworld.model.Treasure;
 import com.deepred.subworld.model.User;
@@ -34,15 +34,15 @@ class DataManager implements GeoQueryEventListener {
     private GeoQuery geoQuery;
     private String uid = null;
     private User user = null;
-    private GameService gm;
+    private Context ctx;
     private ViewRangeManager viewRange;
 
     private DataManager(){
         //Firebase.setAndroidContext(ApplicationHolder.getApp().getApplicationContext());
-        Firebase.setAndroidContext(gm);
+        /*Firebase.setAndroidContext(gm);
         dbRef = new Firebase(ICommon.FIREBASE_REF);
         dbGeoRef = new GeoFire(new Firebase(ICommon.GEO_FIRE_REF));
-        geoQuery = null;
+        geoQuery = null;*/
     }
 
     static DataManager getInstance(){
@@ -56,9 +56,13 @@ class DataManager implements GeoQueryEventListener {
         return INSTANCE;
     }
 
-    public void setContext(GameService ctx, ViewRangeManager _viewRange) {
-        gm = ctx;
+    public void setContext(Context _ctx, ViewRangeManager _viewRange) {
+        ctx = _ctx;
         viewRange = _viewRange;
+        Firebase.setAndroidContext(ctx);
+        dbRef = new Firebase(ICommon.FIREBASE_REF);
+        dbGeoRef = new GeoFire(new Firebase(ICommon.GEO_FIRE_REF));
+        geoQuery = null;
     }
 
     Firebase getDbRef() {

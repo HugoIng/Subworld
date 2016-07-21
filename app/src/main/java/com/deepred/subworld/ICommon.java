@@ -43,6 +43,8 @@ public class ICommon {
     public static final int MARKER_RIVAL = 0;
     public static final int MARKER_TREASURE = 1;
 
+    public static final int INITIAL_TREASURES = 2;
+
 
     //Skills
     public final static int DEFAULT_FINDING_ARCH = 5;
